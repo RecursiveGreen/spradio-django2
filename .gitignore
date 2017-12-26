@@ -42,3 +42,4 @@ docs/_build/
 
 # IDE customizations
 .vscode/
+requirements-dev.txt
