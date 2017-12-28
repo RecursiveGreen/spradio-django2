@@ -8,9 +8,9 @@ CONFIG_DIR = os.path.dirname(SETTINGS_DIR)
 PROJECT_DIR = os.path.dirname(CONFIG_DIR)
 BASE_DIR = os.path.dirname(PROJECT_DIR)
 
-###
-### Django-specific settings
-###
+#
+#  Django-specific settings
+#
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -88,9 +88,9 @@ USE_TZ = True
 
 WSGI_APPLICATION = 'savepointradio.wsgi.application'
 
-###
-### Radio-specific settings
-###
+#
+#  Radio-specific settings
+#
 
 RADIO_DJ_EMAIL = config('RADIO_DJ_EMAIL', default='dj@radiostation.net')
 
