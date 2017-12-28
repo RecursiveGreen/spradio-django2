@@ -9,7 +9,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 .venv/
-.env
 build/
 develop-eggs/
 dist/
@@ -43,3 +42,7 @@ docs/_build/
 # IDE customizations
 .vscode/
 requirements-dev.txt
+
+# Sensitive information
+.env
+.djinfo
