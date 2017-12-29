@@ -31,11 +31,12 @@ class Setting(models.Model):
         (STRING, 'String'),
         (BOOL, 'Bool'),
     )
-    name = models.CharField(max_length=64, unique=True)
-    description = models.TextField(blank=True)
-    setting_type = models.PositiveIntegerField(choices=TYPE_CHOICES,
+    name = models.CharField(_('name'), max_length=64, unique=True)
+    description = models.TextField(_('description'), blank=True)
+    setting_type = models.PositiveIntegerField(_('variable type'),
+                                               choices=TYPE_CHOICES,
                                                default=INTEGER)
-    data = models.TextField()
+    data = models.TextField(_('data'))
 
     def get(self):
         if self.setting_type == self.INTEGER:

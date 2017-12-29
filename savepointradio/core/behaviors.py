@@ -4,6 +4,9 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class Timestampable(models.Model):
+    """
+    Mixin for keeping track of when an object was created and last modified.
+    """
     created_date = models.DateTimeField(_('added on'), auto_now_add=True)
     modified_date = models.DateTimeField(_('last modified'), auto_now=True)
 
