@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'authtools',
 
     'core.apps.CoreConfig',
+    'radio.apps.RadioConfig',
 ]
 
 LANGUAGE_CODE = 'en-us'
