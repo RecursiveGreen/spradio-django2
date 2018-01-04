@@ -16,7 +16,7 @@ class ArtistInline(admin.TabularInline):
 @admin.register(Album)
 class AlbumAdmin(admin.ModelAdmin):
     # Detail List display
-    list_display = ('title', 'is_enabled', 'is_published')
+    list_display = ('title', '_is_enabled', '_is_published')
     search_fields = ['title']
     actions = ['publish_items']
 
@@ -36,12 +36,6 @@ class AlbumAdmin(admin.ModelAdmin):
         })
     )
 
-    def is_enabled(self, obj):
-        return not obj.disabled
-
-    def is_published(self, obj):
-        return obj.is_published
-
     def publish_items(self, request, queryset):
         rows_updated = queryset.update(published_date=timezone.now())
         if rows_updated == 1:
@@ -58,8 +52,8 @@ class ArtistAdmin(admin.ModelAdmin):
     list_display = ('first_name',
                     'alias',
                     'last_name',
-                    'is_enabled',
-                    'is_published')
+                    '_is_enabled',
+                    '_is_published')
     search_fields = ['first_name', 'alias', 'last_name']
     actions = ['publish_items']
 
@@ -79,12 +73,6 @@ class ArtistAdmin(admin.ModelAdmin):
         })
     )
 
-    def is_enabled(self, obj):
-        return not obj.disabled
-
-    def is_published(self, obj):
-        return obj.is_published
-
     def publish_items(self, request, queryset):
         rows_updated = queryset.update(published_date=timezone.now())
         if rows_updated == 1:
@@ -98,7 +86,7 @@ class ArtistAdmin(admin.ModelAdmin):
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
     # Detail List display
-    list_display = ('title', 'is_enabled', 'is_published')
+    list_display = ('title', '_is_enabled', '_is_published')
     search_fields = ['title']
     actions = ['publish_items']
 
@@ -117,12 +105,6 @@ class GameAdmin(admin.ModelAdmin):
             'fields': ('created_date', 'modified_date')
         })
     )
-
-    def is_enabled(self, obj):
-        return not obj.disabled
-
-    def is_published(self, obj):
-        return obj.is_published
 
     def publish_items(self, request, queryset):
         rows_updated = queryset.update(published_date=timezone.now())
@@ -144,8 +126,8 @@ class SongAdmin(admin.ModelAdmin):
     list_display = ('title',
                     'game',
                     'artist_list',
-                    'is_enabled',
-                    'is_published')
+                    '_is_enabled',
+                    '_is_published')
     search_fields = ['title']
     actions = ['publish_items']
 
@@ -186,12 +168,6 @@ class SongAdmin(admin.ModelAdmin):
 
     def artist_list(self, obj):
         return ', '.join([a.full_name for a in obj.artists.all()])
-
-    def is_enabled(self, obj):
-        return not obj.disabled
-
-    def is_published(self, obj):
-        return obj.is_published
 
     def publish_items(self, request, queryset):
         rows_updated = queryset.update(published_date=timezone.now())

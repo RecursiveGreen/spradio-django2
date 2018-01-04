@@ -29,6 +29,11 @@ class Disableable(models.Model):
         self.disabled_reason = ''
         self.save()
 
+    def _is_enabled(self):
+        return not self.disabled
+    _is_enabled.boolean = True
+    is_enabled = property(_is_enabled)
+
 
 class Publishable(models.Model):
     """
@@ -49,8 +54,9 @@ class Publishable(models.Model):
         self.published_date = date
         self.save()
 
-    @property
-    def is_published(self):
+    def _is_published(self):
         if self.published_date is not None:
             return self.published_date < timezone.now()
         return False
+    _is_published.boolean = True
+    is_published = property(_is_published)
