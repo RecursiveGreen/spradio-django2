@@ -24,6 +24,9 @@ class Artist(Disableable, Publishable, Timestampable, models.Model):
     first_name = models.CharField(_('first name'), max_length=127, blank=True)
     last_name = models.CharField(_('last name'), max_length=127, blank=True)
 
+    class Meta:
+        ordering = ('first_name', 'alias',)
+
     @property
     def full_name(self):
         if not self.alias:
