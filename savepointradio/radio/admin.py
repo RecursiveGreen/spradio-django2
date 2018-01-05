@@ -15,6 +15,8 @@ class ArtistInline(admin.TabularInline):
 
 @admin.register(Album)
 class AlbumAdmin(admin.ModelAdmin):
+    ordering = ("sorted_title",)
+    
     # Detail List display
     list_display = ('title', '_is_enabled', '_is_published')
     search_fields = ['title']
@@ -48,6 +50,8 @@ class AlbumAdmin(admin.ModelAdmin):
 
 @admin.register(Artist)
 class ArtistAdmin(admin.ModelAdmin):
+    ordering = ("sorted_full_name",)
+    
     # Detail List display
     list_display = ('first_name',
                     'alias',
@@ -85,6 +89,8 @@ class ArtistAdmin(admin.ModelAdmin):
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
+    ordering = ("sorted_title",)
+    
     # Detail List display
     list_display = ('title', '_is_enabled', '_is_published')
     search_fields = ['title']
@@ -118,6 +124,8 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(Song)
 class SongAdmin(admin.ModelAdmin):
+    ordering = ("sorted_title",)
+    
     formfield_overrides = {
         models.TextField: {'widget': TextInput(attrs={'size': 160, })},
     }

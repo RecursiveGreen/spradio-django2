@@ -12,6 +12,11 @@ class Album(Disableable, Publishable, Timestampable, models.Model):
     """
     title = models.CharField(_('title'), max_length=255, unique=True)
 
+    sorted_title = models.CharField(_('naturalized title'),
+                                    db_index=True,
+                                    editable=False,
+                                    max_length=255)
+
     def __str__(self):
         return self.title
 
@@ -24,8 +29,10 @@ class Artist(Disableable, Publishable, Timestampable, models.Model):
     first_name = models.CharField(_('first name'), max_length=127, blank=True)
     last_name = models.CharField(_('last name'), max_length=127, blank=True)
 
-    class Meta:
-        ordering = ('first_name', 'alias',)
+    sorted_full_name = models.CharField(_('naturalized full name'),
+                                        db_index=True,
+                                        editable=False,
+                                        max_length=255)
 
     @property
     def full_name(self):
@@ -48,6 +55,11 @@ class Game(Disableable, Publishable, Timestampable, models.Model):
     A model for a game.
     """
     title = models.CharField(_('title'), max_length=255, unique=True)
+
+    sorted_title = models.CharField(_('naturalized title'),
+                                    db_index=True,
+                                    editable=False,
+                                    max_length=255)
 
     def __str__(self):
         return self.title
@@ -89,6 +101,11 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
                                  null=True,
                                  blank=True)
     path = models.TextField(_('absolute path to song file'))
+
+    sorted_title = models.CharField(_('naturalized title'),
+                                    db_index=True,
+                                    editable=False,
+                                    max_length=255)
 
     objects = models.Manager()
     music = SongManager()

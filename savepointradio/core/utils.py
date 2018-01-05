@@ -1,5 +1,7 @@
 import random
+import re
 import string
+from unicodedata import normalize
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
@@ -52,3 +54,23 @@ def set_setting(name, value, setting_type=None):
             error_msg = 'New settings need type (Integer, Float, String, Bool)'
             raise TypeError(error_msg)
     return
+
+
+def naturalize(string):
+    """
+    Return a normalized unicode string, with removed starting articles, for use
+    in natural sorting.
+
+    Code was inspired by 'django-naturalsortfield' from Nathan Reynolds:
+    https://github.com/nathforge/django-naturalsortfield
+    """
+    def naturalize_int_match(match):
+        return '%08d' % (int(match.group(0)),)
+
+    string = normalize('NFKD', string).encode('ascii', 'ignore').decode('ascii')
+    string = string.lower()
+    string = string.strip()
+    string = re.sub(r'^(a|an|the)\s+', '', string)
+    string = re.sub(r'\d+', naturalize_int_match, string)
+
+    return string
