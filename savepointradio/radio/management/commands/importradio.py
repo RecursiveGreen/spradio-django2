@@ -17,10 +17,7 @@ def convert_decimal(s):
     return Decimal(s.decode('utf8'))
 
 
-# Register the adapter
 sqlite3.register_adapter(Decimal, adapt_decimal)
-
-# Register the converter
 sqlite3.register_converter("decimal", convert_decimal)
 
 
@@ -40,9 +37,9 @@ class Command(BaseCommand):
             total_songs = 0
             total_jingles = 0
 
+            detect_types = sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
             con = sqlite3.connect(options['sqlite3_db_file'][0],
-                                  detect_types=sqlite3.PARSE_DECLTYPES |
-                                               sqlite3.PARSE_COLNAMES)
+                                  detect_types=detect_types)
             cur = con.cursor()
 
             # Fetching albums first
