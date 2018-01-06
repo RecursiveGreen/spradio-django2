@@ -56,7 +56,7 @@ def set_setting(name, value, setting_type=None):
     return
 
 
-def naturalize(string):
+def naturalize(text):
     """
     Return a normalized unicode string, with removed starting articles, for use
     in natural sorting.
@@ -67,10 +67,12 @@ def naturalize(string):
     def naturalize_int_match(match):
         return '%08d' % (int(match.group(0)),)
 
-    string = normalize('NFKD', string).encode('ascii', 'ignore').decode('ascii')
-    string = string.lower()
-    string = string.strip()
-    string = re.sub(r'^(a|an|the)\s+', '', string)
-    string = re.sub(r'\d+', naturalize_int_match, string)
+    text = normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    text = text.lower()
+    punc = re.compile('[{}]'.format(re.escape(string.punctuation)))
+    text = re.sub(punc, ' ', text)
+    text = text.strip()
+    text = re.sub(r'^(a|an|the)\s+', '', text)
+    text = re.sub(r'\d+', naturalize_int_match, text)
 
-    return string
+    return text
