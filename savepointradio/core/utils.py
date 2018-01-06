@@ -65,7 +65,7 @@ def naturalize(text):
     https://github.com/nathforge/django-naturalsortfield
     """
     def naturalize_int_match(match):
-        return '%08d' % (int(match.group(0)),)
+        return '{:08d}'.format(int(match.group(0)))
 
     text = normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
     text = text.lower()
