@@ -11,6 +11,6 @@ from .models import Album, Artist, Game, Song
 @receiver(pre_save, sender=Song)
 def update_sorted_fields(sender, instance, **kwargs):
     if sender == Artist:
-        instance.sorted_full_name = naturalize(getattr(instance, 'full_name'))
+        instance.sorted_full_name = naturalize(instance.full_name)
     else:
-        instance.sorted_title = naturalize(getattr(instance, 'title'))
+        instance.sorted_title = naturalize(instance.title)
