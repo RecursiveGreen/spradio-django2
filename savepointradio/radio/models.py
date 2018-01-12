@@ -17,6 +17,9 @@ class Album(Disableable, Publishable, Timestampable, models.Model):
                                     editable=False,
                                     max_length=255)
 
+    class Meta:
+        ordering = ['sorted_title', ]
+
     def __str__(self):
         return self.title
 
@@ -33,6 +36,9 @@ class Artist(Disableable, Publishable, Timestampable, models.Model):
                                         db_index=True,
                                         editable=False,
                                         max_length=255)
+
+    class Meta:
+        ordering = ['sorted_full_name', ]
 
     @property
     def full_name(self):
@@ -60,6 +66,9 @@ class Game(Disableable, Publishable, Timestampable, models.Model):
                                     db_index=True,
                                     editable=False,
                                     max_length=255)
+
+    class Meta:
+        ordering = ['sorted_title', ]
 
     def __str__(self):
         return self.title
@@ -110,7 +119,11 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
     objects = models.Manager()
     music = SongManager()
 
-    def __str__(self):
+    class Meta:
+        ordering = ['sorted_title', ]
+
+    @property
+    def full_title(self):
         if self.song_type == 'J':
             return self.title
         else:
@@ -118,3 +131,6 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
             return '{} - {} ({})'.format(self.game.title,
                                          self.title,
                                          all_artists)
+
+    def __str__(self):
+        return self.title
