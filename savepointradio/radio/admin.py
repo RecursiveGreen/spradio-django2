@@ -1,8 +1,11 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db import models
 from django.forms import TextInput
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.utils import timezone
 
+from .forms import ArtistFormSet
 from .models import Album, Artist, Game, Song
 
 
@@ -15,8 +18,6 @@ class ArtistInline(admin.TabularInline):
 
 @admin.register(Album)
 class AlbumAdmin(admin.ModelAdmin):
-    ordering = ("sorted_title",)
-    
     # Detail List display
     list_display = ('title', '_is_enabled', '_is_published')
     search_fields = ['title']
@@ -50,8 +51,6 @@ class AlbumAdmin(admin.ModelAdmin):
 
 @admin.register(Artist)
 class ArtistAdmin(admin.ModelAdmin):
-    ordering = ("sorted_full_name",)
-    
     # Detail List display
     list_display = ('first_name',
                     'alias',
@@ -89,8 +88,6 @@ class ArtistAdmin(admin.ModelAdmin):
 
 @admin.register(Game)
 class GameAdmin(admin.ModelAdmin):
-    ordering = ("sorted_title",)
-    
     # Detail List display
     list_display = ('title', '_is_enabled', '_is_published')
     search_fields = ['title']
@@ -124,8 +121,6 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(Song)
 class SongAdmin(admin.ModelAdmin):
-    ordering = ("sorted_title",)
-    
     formfield_overrides = {
         models.TextField: {'widget': TextInput(attrs={'size': 160, })},
     }
@@ -133,11 +128,12 @@ class SongAdmin(admin.ModelAdmin):
     # Detail List display
     list_display = ('title',
                     'game',
+                    'album',
                     'artist_list',
                     '_is_enabled',
                     '_is_published')
     search_fields = ['title']
-    actions = ['publish_items']
+    actions = ['publish_items', 'add_artists', 'remove_artists']
 
     # Edit Form display
     exclude = ('artists',)
@@ -176,6 +172,86 @@ class SongAdmin(admin.ModelAdmin):
 
     def artist_list(self, obj):
         return ', '.join([a.full_name for a in obj.artists.all()])
+
+    def add_artists(self, request, queryset):
+        artist_formset = None
+
+        # If we clicked "Add Artists", then continue. . .
+        if 'apply' in request.POST:
+            # Fill the formset with values from the POST request
+            artist_formset = ArtistFormSet(request.POST)
+
+            # Will only returned "cleaned_data" if form is valid
+            if artist_formset.is_valid():
+                # remove the empty form data from the list
+                data = list(filter(None, artist_formset.cleaned_data))
+
+                for artist in data:
+                    for song in queryset:
+                        song.artists.add(artist['artist'])
+
+                # Return with informative success message and counts
+                a_count = len(data)
+                s_count = queryset.count()
+                a_msg = ('1 artist was',
+                         '{} artists were'.format(a_count))[a_count > 1]
+                s_msg = ('1 song', '{} songs'.format(s_count))[s_count > 1]
+                self.message_user(request,
+                                  '{} successfully added to {}.'.format(a_msg,
+                                                                        s_msg))
+                return HttpResponseRedirect(request.get_full_path())
+            else:
+                self.message_user(request,
+                                  "See below for errors in the form.",
+                                  level=messages.ERROR)
+        # . . .otherwise, create empty formset.
+        if not artist_formset:
+            artist_formset = ArtistFormSet()
+
+        return render(request,
+                      'admin/add_artists_intermediate.html',
+                      {'songs': queryset, 'artist_formset': artist_formset, })
+    add_artists.short_description = "Add artists to selected items"
+
+    def remove_artists(self, request, queryset):
+        artist_formset = None
+
+        # If we clicked "Remove Artists", then continue. . .
+        if 'apply' in request.POST:
+            # Fill the formset with values from the POST request
+            artist_formset = ArtistFormSet(request.POST)
+
+            # Will only returned "cleaned_data" if form is valid
+            if artist_formset.is_valid():
+                # remove the empty form data from the list
+                data = list(filter(None, artist_formset.cleaned_data))
+
+                for artist in data:
+                    for song in queryset:
+                        song.artists.remove(artist['artist'])
+
+                # Return with informative success message and counts
+                a_count = len(data)
+                s_count = queryset.count()
+                a_msg = ('1 artist was',
+                         '{} artists were'.format(a_count))[a_count > 1]
+                s_msg = ('1 song', '{} songs'.format(s_count))[s_count > 1]
+                self.message_user(request,
+                                  '{} successfully removed from {}.'.format(a_msg,
+                                                                            s_msg))
+                return HttpResponseRedirect(request.get_full_path())
+            else:
+                self.message_user(request,
+                                  "See below for errors in the form.",
+                                  level=messages.ERROR)
+        # . . .otherwise, create empty formset.
+        if not artist_formset:
+            artist_formset = ArtistFormSet()
+
+        return render(request,
+                      'admin/remove_artists_intermediate.html',
+                      {'songs': queryset, 'artist_formset': artist_formset, })
+    remove_artists.short_description = "Remove artists from selected items"
 
     def publish_items(self, request, queryset):
         rows_updated = queryset.update(published_date=timezone.now())
