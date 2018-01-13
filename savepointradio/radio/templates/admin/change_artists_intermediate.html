@@ -8,7 +8,7 @@
         <thead>
             <tr>
                 <th colspan="2">
-                    <p>Select up to ten artists to add to the songs below:</p>
+                    <p>Select up to ten artists to {% if is_removal %}remove from{% else %}add to{% endif %} the songs below:</p>
                 </th>
             </tr>
         </thead>
@@ -20,7 +20,7 @@
         <thead>
             <tr>
                 <th>
-                    <p>Artists will be added to the following songs:</p>
+                    <p>Artists will be {% if is_removal %}removed from{% else %}added to{% endif %} the following songs:</p>
                 </th>
             </tr>
         </thead>
@@ -36,8 +36,9 @@
         </tbody>
     </table>
 
-    <input type="hidden" name="action" value="add_artists" />
+    <input type="hidden" name="action" value="{% if is_removal %}remove_artists{% else %}add_artists{% endif %}" />
+    <input type="hidden" name="removal" value="{{ is_removal }}" />
     <a href="./"><input type="button" name="Cancel" value="Cancel"></a>
-    <input type="submit" name="apply" value="Add Artists" />
+    <input type="submit" name="apply" value="{% if is_removal %}Remove{% else %}Add{% endif %} Artists" />
 </form> 
 {% endblock %}

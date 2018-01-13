@@ -18,7 +18,7 @@
 # Radio
 
 ## General
-- [ ] Admin actions for Song need some serious DRY cleaning.
+- [x] Admin actions for Song need some serious DRY cleaning.
 
 ## Functionality
 - [x] Import old radio database

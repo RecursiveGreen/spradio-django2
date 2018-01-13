@@ -173,22 +173,25 @@ class SongAdmin(admin.ModelAdmin):
     def artist_list(self, obj):
         return ', '.join([a.full_name for a in obj.artists.all()])
 
-    def add_artists(self, request, queryset):
+    def change_artists(self, request, queryset, remove=False):
         artist_formset = None
 
-        # If we clicked "Add Artists", then continue. . .
+        # If we clicked Submit, then continue. . .
         if 'apply' in request.POST:
             # Fill the formset with values from the POST request
             artist_formset = ArtistFormSet(request.POST)
 
-            # Will only returned "cleaned_data" if form is valid
+            # Will only returned "cleaned_data" if form is valid, so check
             if artist_formset.is_valid():
-                # remove the empty form data from the list
+                # Remove the empty form data from the list
                 data = list(filter(None, artist_formset.cleaned_data))
 
                 for artist in data:
                     for song in queryset:
-                        song.artists.add(artist['artist'])
+                        if request.POST['removal'] == 'True':
+                            song.artists.remove(artist['artist'])
+                        else:
+                            song.artists.add(artist['artist'])
 
                 # Return with informative success message and counts
                 a_count = len(data)
@@ -196,9 +199,14 @@ class SongAdmin(admin.ModelAdmin):
                 a_msg = ('1 artist was',
                          '{} artists were'.format(a_count))[a_count > 1]
                 s_msg = ('1 song', '{} songs'.format(s_count))[s_count > 1]
+                if request.POST['removal'] == 'True':
+                    act_msg = 'removed from'
+                else:
+                    act_msg = 'added to'
                 self.message_user(request,
-                                  '{} successfully added to {}.'.format(a_msg,
-                                                                        s_msg))
+                                  '{} successfully {} {}.'.format(a_msg,
+                                                                  act_msg,
+                                                                  s_msg))
                 return HttpResponseRedirect(request.get_full_path())
             else:
                 self.message_user(request,
@@ -209,48 +217,17 @@ class SongAdmin(admin.ModelAdmin):
             artist_formset = ArtistFormSet()
 
         return render(request,
-                      'admin/add_artists_intermediate.html',
-                      {'songs': queryset, 'artist_formset': artist_formset, })
+                      'admin/change_artists_intermediate.html',
+                      {'songs': queryset,
+                       'artist_formset': artist_formset,
+                       'is_removal': remove, })
+
+    def add_artists(self, request, queryset):
+        return self.change_artists(request, queryset)
     add_artists.short_description = "Add artists to selected items"
 
     def remove_artists(self, request, queryset):
-        artist_formset = None
-
-        # If we clicked "Remove Artists", then continue. . .
-        if 'apply' in request.POST:
-            # Fill the formset with values from the POST request
-            artist_formset = ArtistFormSet(request.POST)
-
-            # Will only returned "cleaned_data" if form is valid
-            if artist_formset.is_valid():
-                # remove the empty form data from the list
-                data = list(filter(None, artist_formset.cleaned_data))
-
-                for artist in data:
-                    for song in queryset:
-                        song.artists.remove(artist['artist'])
-
-                # Return with informative success message and counts
-                a_count = len(data)
-                s_count = queryset.count()
-                a_msg = ('1 artist was',
-                         '{} artists were'.format(a_count))[a_count > 1]
-                s_msg = ('1 song', '{} songs'.format(s_count))[s_count > 1]
-                self.message_user(request,
-                                  '{} successfully removed from {}.'.format(a_msg,
-                                                                            s_msg))
-                return HttpResponseRedirect(request.get_full_path())
-            else:
-                self.message_user(request,
-                                  "See below for errors in the form.",
-                                  level=messages.ERROR)
-        # . . .otherwise, create empty formset.
-        if not artist_formset:
-            artist_formset = ArtistFormSet()
-
-        return render(request,
-                      'admin/remove_artists_intermediate.html',
-                      {'songs': queryset, 'artist_formset': artist_formset, })
+        return self.change_artists(request, queryset, remove=True)
     remove_artists.short_description = "Remove artists from selected items"
 
     def publish_items(self, request, queryset):
