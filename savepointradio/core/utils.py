@@ -78,14 +78,26 @@ def naturalize(text):
     return text
 
 
-def build_message_start(quantity, model):
+def quantify(quantity, model):
     """
-    The beggining of a message based on the quantity and singular/plural name
-    of the model involved.
+    A message based on the quantity and singular/plural name of the model.
     """
     if quantity == 1:
-        message = '1 {} was'.format(model._meta.verbose_name)
+        message = '1 {}'.format(model._meta.verbose_name)
     else:
-        message = '{} {} were'.format(str(quantity),
-                                      model._meta.verbose_name_plural)
+        message = '{} {}'.format(str(quantity),
+                                 model._meta.verbose_name_plural)
     return message
+
+
+def create_success_message(parent_model, parent_quantity, child_model,
+                           child_quantity, remove=False):
+    """
+    Creates a message for displaying the success of model modification.
+    """
+    p_message = quantify(parent_quantity, parent_model)
+    c_message = quantify(child_quantity, child_model)
+    if remove:
+        return '{} successfully removed from {}'.format(c_message, p_message)
+    else:
+        return '{} successfully added to {}.'.format(c_message, p_message)

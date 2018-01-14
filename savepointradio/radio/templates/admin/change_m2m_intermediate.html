@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% load model_names %}
+
+{% block content %}
+<form action="" method="post">  
+    {% csrf_token %}
+    {{ item_formset.management_form }}
+    <table>
+        <thead>
+            <tr>
+                <th colspan="2">
+                    <p>Select up to ten {% model_name_plural child_model %} to {% if is_removal %}remove from{% else %}add to{% endif %} the {% model_name_plural parent_model %} below:</p>
+                </th>
+            </tr>
+        </thead>
+        {% for form in item_formset %}
+        {{ form }}
+        {% endfor %}
+    </table>
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    <p>{% filter capfirst %}{% model_name_plural child_model %}{% endfilter %} will be {% if is_removal %}removed from{% else %}added to{% endif %} the following {% model_name_plural parent_model %}:</p>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for parent in parent_queryset %}
+            <tr>
+                <th>
+                    {{ parent }}
+                    <input type="hidden" name="_selected_action" value="{{ parent.pk }}" />
+                </th>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <input type="hidden" name="action" value="{{ calling_function }}" />
+    <input type="hidden" name="removal" value="{{ is_removal }}" />
+    <a href="./"><input type="button" name="Cancel" value="Cancel"></a>
+    <input type="submit" name="apply" value="{% if is_removal %}Remove{% else %}Add{% endif %} {% filter capfirst %}{% model_name_plural child_model %}{% endfilter %}" />
+</form> 
+{% endblock %}
