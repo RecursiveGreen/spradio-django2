@@ -3,8 +3,8 @@ from django.db import models
 from django.forms import TextInput
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.utils import timezone
 
+from .actions import publish_items
 from .forms import ArtistFormSet
 from .models import Album, Artist, Game, Song
 
@@ -21,7 +21,7 @@ class AlbumAdmin(admin.ModelAdmin):
     # Detail List display
     list_display = ('title', '_is_enabled', '_is_published')
     search_fields = ['title']
-    actions = ['publish_items']
+    actions = ['publish_albums']
 
     # Edit Form display
     readonly_fields = ('created_date', 'modified_date')
@@ -39,14 +39,9 @@ class AlbumAdmin(admin.ModelAdmin):
         })
     )
 
-    def publish_items(self, request, queryset):
-        rows_updated = queryset.update(published_date=timezone.now())
-        if rows_updated == 1:
-            msg = '1 album was'
-        else:
-            msg = '{} albums were'.format(str(rows_updated))
-        self.message_user(request, '{} successfully published.'.format(msg))
-    publish_items.short_description = "Publish selected items"
+    def publish_albums(self, request, queryset):
+        publish_items(request, queryset)
+    publish_albums.short_description = "Publish selected albums"
 
 
 @admin.register(Artist)
@@ -58,7 +53,7 @@ class ArtistAdmin(admin.ModelAdmin):
                     '_is_enabled',
                     '_is_published')
     search_fields = ['first_name', 'alias', 'last_name']
-    actions = ['publish_items']
+    actions = ['publish_artists']
 
     # Edit Form display
     readonly_fields = ('created_date', 'modified_date')
@@ -76,14 +71,9 @@ class ArtistAdmin(admin.ModelAdmin):
         })
     )
 
-    def publish_items(self, request, queryset):
-        rows_updated = queryset.update(published_date=timezone.now())
-        if rows_updated == 1:
-            msg = '1 artist was'
-        else:
-            msg = '{} artists were'.format(str(rows_updated))
-        self.message_user(request, '{} successfully published.'.format(msg))
-    publish_items.short_description = "Publish selected items"
+    def publish_artists(self, request, queryset):
+        publish_items(request, queryset)
+    publish_artists.short_description = "Publish selected artists"
 
 
 @admin.register(Game)
@@ -91,7 +81,7 @@ class GameAdmin(admin.ModelAdmin):
     # Detail List display
     list_display = ('title', '_is_enabled', '_is_published')
     search_fields = ['title']
-    actions = ['publish_items']
+    actions = ['publish_games']
 
     # Edit Form display
     readonly_fields = ('created_date', 'modified_date')
@@ -109,14 +99,9 @@ class GameAdmin(admin.ModelAdmin):
         })
     )
 
-    def publish_items(self, request, queryset):
-        rows_updated = queryset.update(published_date=timezone.now())
-        if rows_updated == 1:
-            msg = '1 game was'
-        else:
-            msg = '{} games were'.format(str(rows_updated))
-        self.message_user(request, '{} successfully published.'.format(msg))
-    publish_items.short_description = "Publish selected items"
+    def publish_games(self, request, queryset):
+        publish_items(request, queryset)
+    publish_games.short_description = "Publish selected games"
 
 
 @admin.register(Song)
@@ -133,7 +118,7 @@ class SongAdmin(admin.ModelAdmin):
                     '_is_enabled',
                     '_is_published')
     search_fields = ['title']
-    actions = ['publish_items', 'add_artists', 'remove_artists']
+    actions = ['publish_songs', 'add_artists', 'remove_artists']
 
     # Edit Form display
     exclude = ('artists',)
@@ -230,11 +215,6 @@ class SongAdmin(admin.ModelAdmin):
         return self.change_artists(request, queryset, remove=True)
     remove_artists.short_description = "Remove artists from selected items"
 
-    def publish_items(self, request, queryset):
-        rows_updated = queryset.update(published_date=timezone.now())
-        if rows_updated == 1:
-            msg = '1 song was'
-        else:
-            msg = '{} songs were'.format(str(rows_updated))
-        self.message_user(request, '{} successfully published.'.format(msg))
-    publish_items.short_description = "Publish selected items"
+    def publish_songs(self, request, queryset):
+        publish_items(request, queryset)
+    publish_songs.short_description = "Publish selected songs"

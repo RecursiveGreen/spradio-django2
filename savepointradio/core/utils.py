@@ -76,3 +76,16 @@ def naturalize(text):
     text = re.sub(r'\d+', naturalize_int_match, text)
 
     return text
+
+
+def build_message_start(quantity, model):
+    """
+    The beggining of a message based on the quantity and singular/plural name
+    of the model involved.
+    """
+    if quantity == 1:
+        message = '1 {} was'.format(model._meta.verbose_name)
+    else:
+        message = '{} {} were'.format(str(quantity),
+                                      model._meta.verbose_name_plural)
+    return message
