@@ -13,7 +13,6 @@ def change_items(request, queryset, parent_field, calling_function,
     child_model = through_field.field.related_model
 
     class ItemForm(forms.Form):
-        # _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
         item = forms.ModelChoiceField(child_model.objects.all())
 
     if m2m:
@@ -24,6 +23,7 @@ def change_items(request, queryset, parent_field, calling_function,
                                                   extra=10,)
     else:
         ItemFormSet = forms.formset_factory(ItemForm, max_num=1)
+
     # If we clicked Submit, then continue. . .
     if 'apply' in request.POST:
         # Fill the formset with values from the POST request
@@ -59,8 +59,6 @@ def change_items(request, queryset, parent_field, calling_function,
     # . . .otherwise, create empty formset.
     else:
         item_formset = ItemFormSet()
-        # sel_act = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        # item_formset = ItemForm(initial={'_selected_action': sel_act})
 
     return render(request,
                   'admin/change_items_intermediate.html',
