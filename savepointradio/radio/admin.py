@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db import models
 from django.forms import TextInput
 
-from .actions import change_m2m_items, publish_items
+from .actions import change_items, publish_items, remove_items
 from .models import Album, Artist, Game, Song
 
 
@@ -115,7 +115,10 @@ class SongAdmin(admin.ModelAdmin):
                     '_is_enabled',
                     '_is_published')
     search_fields = ['title']
-    actions = ['publish_songs', 'add_artists', 'remove_artists']
+    actions = ['publish_songs',
+               'add_game', 'remove_game',
+               'add_album', 'remove_album',
+               'add_artists', 'remove_artists']
 
     # Edit Form display
     exclude = ('artists',)
@@ -155,15 +158,31 @@ class SongAdmin(admin.ModelAdmin):
     def artist_list(self, obj):
         return ', '.join([a.full_name for a in obj.artists.all()])
 
+    def add_album(self, request, queryset):
+        return change_items(request, queryset, 'album', 'add_album')
+    add_album.short_description = "Add album to selected items"
+
+    def remove_album(self, request, queryset):
+        return remove_items(request, queryset, 'album', 'remove_album')
+    remove_album.short_description = "Remove album from selected items"
+
     def add_artists(self, request, queryset):
-        return change_m2m_items(request, queryset, Song, 'artists',
-                                'artist', 'add_artists')
+        return change_items(request, queryset, 'artists', 'add_artists',
+                            m2m='artist')
     add_artists.short_description = "Add artists to selected items"
 
     def remove_artists(self, request, queryset):
-        return change_m2m_items(request, queryset, Song, 'artists',
-                                'artist', 'remove_artists', remove=True)
+        return change_items(request, queryset, 'artists', 'remove_artists',
+                            m2m='artist', remove=True)
     remove_artists.short_description = "Remove artists from selected items"
+
+    def add_game(self, request, queryset):
+        return change_items(request, queryset, 'game', 'add_game')
+    add_game.short_description = "Add game to selected items"
+
+    def remove_game(self, request, queryset):
+        return remove_items(request, queryset, 'game', 'remove_game')
+    remove_game.short_description = "Remove game from selected items"
 
     def publish_songs(self, request, queryset):
         publish_items(request, queryset)
