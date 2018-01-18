@@ -10,10 +10,10 @@
 # Profiles
 
 ## Models
-- [ ] RadioProfile
+- [x] RadioProfile
 - [ ] Avatar
-- [ ] Rating
-- [ ] RadioRequest
+- [x] Rating
+- [x] SongRequest
 
 # Radio
 
@@ -24,8 +24,8 @@
 - [x] Import old radio database
 - [ ] Import new songs
 - [x] Admin actions for artist add/remove on Song
-- [ ] Admin actions for album add/remove on Song
-- [ ] Admin actions for game add/remove on Song
+- [x] Admin actions for album add/remove on Song
+- [x] Admin actions for game add/remove on Song
 
 ## Models
 - [x] Artist
