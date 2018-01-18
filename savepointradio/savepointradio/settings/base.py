@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 
     'core.apps.CoreConfig',
     'radio.apps.RadioConfig',
+    'profiles.apps.ProfilesConfig'
 ]
 
 LANGUAGE_CODE = 'en-us'
