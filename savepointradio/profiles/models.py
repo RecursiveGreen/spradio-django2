@@ -63,6 +63,9 @@ class SongRequest(Timestampable, models.Model):
     objects = models.Manager()
     music = RequestManager()
 
+    class Meta:
+        ordering = ['-created_date', ]
+
     def __str__(self):
         req_user = self.profile.user.get_username()
         return "{} - Requested by {} at {}".format(self.song.title,
