@@ -2,8 +2,6 @@ from django.conf import settings
 from django.core.validators import (MaxLengthValidator, MinValueValidator,
                                     MaxValueValidator)
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from core.behaviors import Timestampable
@@ -26,12 +24,6 @@ class RadioProfile(Timestampable, models.Model):
 
     def __str__(self):
         return "{}'s profile".format(self.user.get_username())
-
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_profile(sender, instance, created, **kwargs):
-    if created:
-        profile, new = RadioProfile.objects.get_or_create(user=instance)
 
 
 class Rating(Timestampable, models.Model):
