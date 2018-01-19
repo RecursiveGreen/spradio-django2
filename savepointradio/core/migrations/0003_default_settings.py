@@ -33,6 +33,7 @@ def default_settings(apps, schema_editor):
                 data='30'),
     ])
 
+
 class Migration(migrations.Migration):
 
     dependencies = [

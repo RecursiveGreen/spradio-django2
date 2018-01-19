@@ -12,7 +12,7 @@ from core.utils import generate_password
 def create_dj_user(apps, schema_editor):
     User = apps.get_model('core', 'RadioUser')
     db_alias = schema_editor.connection.alias
-    
+
     new_password = generate_password()
     dj = User(email=settings.RADIO_DJ_EMAIL,
               name=settings.RADIO_DJ_NAME,
