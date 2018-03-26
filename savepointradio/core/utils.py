@@ -101,3 +101,27 @@ def create_success_message(parent_model, parent_quantity, child_model,
         return '{} successfully removed from {}'.format(c_message, p_message)
     else:
         return '{} successfully added to {}.'.format(c_message, p_message)
+
+
+def get_pretty_time(seconds):
+    """
+    Displays a human-readable representation of time.
+    """
+    if seconds > 0:
+        periods = [
+            ('year', 60*60*24*365.25),
+            ('day', 60*60*24),
+            ('hour', 60*60),
+            ('minute', 60),
+            ('second', 1)
+        ]
+        strings = []
+        for period_name, period_seconds in periods:
+            if seconds >= period_seconds:
+                period_value, seconds = divmod(seconds, period_seconds)
+                strings.append('{} {}{}'.format(period_value,
+                                                period_name,
+                                                ('s', '')[period_value == 1]))
+        return ', '.join(strings)
+    else:
+        return 'Now'
