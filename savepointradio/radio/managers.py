@@ -19,6 +19,9 @@ class SongManager(models.Manager):
     def get_queryset(self):
         return SongQuerySet(self.model, using=self._db)
 
+    def available(self):
+        return self.get_queryset().songs().enabled().published()
+
     def playlist_length(self):
         """
         Total length of available songs in the playlist (in seconds).
@@ -38,9 +41,6 @@ class SongManager(models.Manager):
         Datetime of now minus the default wait time for played songs.
         """
         return timezone.now() - timedelta(seconds=float(self.wait_total()))
-
-    def available(self):
-        return self.get_queryset().songs().enabled().published()
 
     def playable(self):
         return self.available().filter(
