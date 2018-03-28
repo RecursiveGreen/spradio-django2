@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from core.behaviors import Timestampable
@@ -42,15 +45,17 @@ class Artist(Disableable, Publishable, Timestampable, models.Model):
 
     @property
     def full_name(self):
-        if not self.alias:
-            return '{} {}'.format(self.first_name, self.last_name)
-        else:
-            if not self.first_name or not self.last_name:
-                return self.alias
-            else:
+        """
+        String representing the artist's full name including an alias, if
+        available.
+        """
+        if self.alias:
+            if self.first_name or self.last_name:
                 return '{} "{}" {}'.format(self.first_name,
                                            self.alias,
                                            self.last_name)
+            return self.alias
+        return '{} {}'.format(self.first_name, self.last_name)
 
     def __str__(self):
         return self.full_name
@@ -124,13 +129,48 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
 
     @property
     def full_title(self):
-        if self.song_type == 'J':
-            return self.title
-        else:
+        """
+        String representing the entire song title, including the game and
+        artists involved.
+        """
+        if self.song_type == 'S':
             all_artists = ', '.join([a.full_name for a in self.artists.all()])
-            return '{} - {} ({})'.format(self.game.title,
+            return '{} - {} [{}]'.format(self.game.title,
                                          self.title,
                                          all_artists)
+        return self.title
+
+    def get_time_until_requestable(self):
+        """
+        Length of time before a song can be requested again.
+        """
+        if self.song_type == 'S':
+            if self.last_played:
+                allowed_datetime = Song.music.datetime_from_wait()
+                remaining_wait = self.last_played - allowed_datetime
+                if remaining_wait.total_seconds() > 0:
+                    return remaining_wait
+                return timedelta(seconds=0)
+            return timedelta(seconds=0)
+        return None
+
+    def get_date_when_requestable(self):
+        """
+        Datetime when a song can be requested again.
+        """
+        if self.song_type == 'S':
+            return self.last_played + Song.music.wait_total()
+        return None
+
+    def _is_requestable(self):
+        """
+        Can the song be requested or not?
+        """
+        if self.song_type == 'S':
+            return self.get_date_when_requestable() <= timezone.now()
+        return False
+    _is_requestable.boolean = True
+    is_requestable = property(_is_requestable)
 
     def __str__(self):
         return self.title
