@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import getcontext, Decimal, ROUND_UP
+from random import randint
 
 from django.apps import apps
 from django.db import models
@@ -23,7 +24,13 @@ class SongManager(models.Manager):
         """
         return SongQuerySet(self.model, using=self._db)
 
-    def available(self):
+    def available_jingles(self):
+        """
+        Jingles that are currently published and are enabled.
+        """
+        return self.get_queryset().jingles().enabled().published()
+
+    def available_songs(self):
         """
         Songs that are currently published and are enabled.
         """
@@ -33,7 +40,8 @@ class SongManager(models.Manager):
         """
         Total length of available songs in the playlist (in seconds).
         """
-        return self.available().aggregate(models.Sum('length'))['length__sum']
+        length = self.available_songs().aggregate(models.Sum('length'))
+        return length['length__sum']
 
     def wait_total(self):
         """
@@ -56,7 +64,7 @@ class SongManager(models.Manager):
         published) and they have not been played within the default wait time
         (or at all).
         """
-        return self.available().filter(
+        return self.available_songs().filter(
                     models.Q(last_played__lt=self.datetime_from_wait()) |
                     models.Q(last_played__isnull=True)
                )
@@ -71,3 +79,16 @@ class SongManager(models.Manager):
         requests = SongRequest.music.unplayed().values_list('song__id',
                                                             flat=True)
         return self.playable().exclude(id__in=requests)
+
+    def get_random_requestable_song(self):
+        """
+        Pick a random requestable song and return it.
+        """
+        return self.requestable()[randint(0, self.requestable().count() - 1)]
+
+    def get_random_jingle(self):
+        """
+        Pick a random jingle and return it.
+        """
+        random_index = randint(0, self.available_jingles().count() - 1)
+        return self.available_jingles()[random_index]
