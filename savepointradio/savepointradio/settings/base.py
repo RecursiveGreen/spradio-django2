@@ -38,10 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'authtools',
+    'rest_framework',
 
     'core.apps.CoreConfig',
     'radio.apps.RadioConfig',
-    'profiles.apps.ProfilesConfig'
+    'profiles.apps.ProfilesConfig',
+    'api.apps.ApiConfig',
 ]
 
 LANGUAGE_CODE = 'en-us'
