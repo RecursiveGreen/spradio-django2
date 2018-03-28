@@ -18,9 +18,9 @@ class PublishedQuerySet(models.QuerySet):
     """
     def published(self):
         results = self.filter(
-                    models.Q(published_date__isnull=False) &
-                    models.Q(published_date__lte=timezone.now())
-                )
+                       models.Q(published_date__isnull=False) &
+                       models.Q(published_date__lte=timezone.now())
+                  )
         return results
 
 
