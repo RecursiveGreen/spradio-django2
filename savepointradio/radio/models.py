@@ -142,7 +142,8 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
         artists involved.
         """
         if self.song_type == 'S':
-            all_artists = ', '.join([a.full_name for a in self.artists.all()])
+            enabled_artists = self.artists.all().filter(disabled=False)
+            all_artists = ', '.join([a.full_name for a in enabled_artists])
             return '{} - {} [{}]'.format(self.game.title,
                                          self.title,
                                          all_artists)

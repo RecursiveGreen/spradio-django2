@@ -21,13 +21,17 @@ class Disableable(models.Model):
         self.disabled = True
         self.disabled_date = timezone.now()
         self.disabled_reason = reason
-        self.save()
+        self.save(update_fields=['disabled',
+                                 'disabled_date',
+                                 'disabled_reason'])
 
     def enable(self):
         self.disabled = False
         self.disabled_date = None
         self.disabled_reason = ''
-        self.save()
+        self.save(update_fields=['disabled',
+                                 'disabled_date',
+                                 'disabled_reason'])
 
     def _is_enabled(self):
         return not self.disabled
@@ -52,7 +56,7 @@ class Publishable(models.Model):
         if date is None:
             date = timezone.now()
         self.published_date = date
-        self.save()
+        self.save(update_fields=['published_date'])
 
     def _is_published(self):
         if self.published_date is not None:
