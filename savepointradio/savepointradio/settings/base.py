@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 
     'authtools',
     'rest_framework',
+    'rest_framework.authtoken',
 
     'core.apps.CoreConfig',
     'radio.apps.RadioConfig',
@@ -91,6 +92,22 @@ USE_L10N = True
 USE_TZ = True
 
 WSGI_APPLICATION = 'savepointradio.wsgi.application'
+
+#
+#  Django Rest Framework settings
+#
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'PAGE_SIZE': 100,
+}
 
 #
 #  Radio-specific settings
