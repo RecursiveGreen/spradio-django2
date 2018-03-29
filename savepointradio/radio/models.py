@@ -4,9 +4,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from core.behaviors import Timestampable
-from .behaviors import Disableable, Publishable
-from .managers import SongManager
+from core.behaviors import Disableable, Publishable, Timestampable
+from .managers import RadioManager, SongManager
 
 
 class Album(Disableable, Publishable, Timestampable, models.Model):
@@ -19,6 +18,9 @@ class Album(Disableable, Publishable, Timestampable, models.Model):
                                     db_index=True,
                                     editable=False,
                                     max_length=255)
+
+    objects = models.Manager()
+    music = RadioManager()
 
     class Meta:
         ordering = ['sorted_title', ]
@@ -39,6 +41,9 @@ class Artist(Disableable, Publishable, Timestampable, models.Model):
                                         db_index=True,
                                         editable=False,
                                         max_length=255)
+
+    objects = models.Manager()
+    music = RadioManager()
 
     class Meta:
         ordering = ['sorted_full_name', ]
@@ -71,6 +76,9 @@ class Game(Disableable, Publishable, Timestampable, models.Model):
                                     db_index=True,
                                     editable=False,
                                     max_length=255)
+
+    objects = models.Manager()
+    music = RadioManager()
 
     class Meta:
         ordering = ['sorted_title', ]

@@ -7,16 +7,52 @@ from django.db import models
 from django.utils import timezone
 
 from core.utils import get_setting
-from .querysets import SongQuerySet
+from .querysets import RadioQuerySet, SongQuerySet
 
 
 # Set decimal precision
 getcontext().prec = 16
 
 
-class SongManager(models.Manager):
+class RadioManager(models.Manager):
     """
-    Custom object manager for filtering out common behaviors for a playlist.
+    Custom object manager for filtering out common behaviors for radio
+    objects.
+    """
+    def get_queryset(self):
+        """
+        Return customized default QuerySet.
+        """
+        return RadioQuerySet(self.model, using=self._db)
+
+    def disabled(self):
+        """
+        Radio objects that are marked as disabled.
+        """
+        return self.get_queryset().disabled()
+
+    def enabled(self):
+        """
+        Radio objects that are marked as enabled.
+        """
+        return self.get_queryset().enabled()
+
+    def published(self):
+        """
+        Radio objects that are marked as published.
+        """
+        return self.get_queryset().published()
+
+    def unpublished(self):
+        """
+        Radio objects that are marked as unpublished.
+        """
+        return self.get_queryset().unpublished()
+
+
+class SongManager(RadioManager):
+    """
+    Custom object manager for filtering out common behaviors for Song objects.
     """
     def get_queryset(self):
         """
@@ -28,13 +64,13 @@ class SongManager(models.Manager):
         """
         Jingles that are currently published and are enabled.
         """
-        return self.get_queryset().jingles().enabled().published()
+        return self.enabled().published().jingles()
 
     def available_songs(self):
         """
         Songs that are currently published and are enabled.
         """
-        return self.get_queryset().songs().enabled().published()
+        return self.enabled().published().songs()
 
     def playlist_length(self):
         """
