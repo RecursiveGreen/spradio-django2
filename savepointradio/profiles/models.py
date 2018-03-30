@@ -66,7 +66,8 @@ class RadioProfile(Disableable, Timestampable, models.Model):
         if song.is_song and not self.user.is_staff and not song.is_requestable:
             if not song.is_enabled or not song.is_published:
                 raise MakeRequestError('Song not available at this time.')
-            play_again = song.get_date_when_requestable()
+            play_again = song.get_date_when_requestable().isoformat(' ',
+                                                                    'seconds')
             message = ('Song has been played recently and cannot be requested '
                        'again until {}')
             raise MakeRequestError(message.format(play_again))
