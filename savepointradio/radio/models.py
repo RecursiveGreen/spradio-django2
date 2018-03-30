@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.apps import apps
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -197,12 +198,27 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
             return timezone.now()
         return None
 
-    def _is_requestable(self):
+    def _is_playable(self):
         """
-        Can the song be requested or not?
+        Is the song available and not been played within the default waiting
+        period (or at all)?
         """
         if self._is_song() and self._is_available():
             return self.get_date_when_requestable() <= timezone.now()
+        return False
+    _is_playable.boolean = True
+    is_playable = property(_is_playable)
+
+    def _is_requestable(self):
+        """
+        Is the song playable and has it not already been requested?
+        """
+        if self._is_playable():
+            SongRequest = apps.get_model(app_label='profiles',
+                                         model_name='SongRequest')
+            requests = SongRequest.music.unplayed().values_list('song__id',
+                                                                flat=True)
+            return self.pk not in requests
         return False
     _is_requestable.boolean = True
     is_requestable = property(_is_requestable)
