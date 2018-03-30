@@ -60,7 +60,7 @@ class NextRequest(RetrieveAPIView):
                                                    song=random_jingle)
 
         next_play.queued_at = timezone.now()
-        next_play.save()
+        next_play.save(update_fields=['queued_at'])
 
         serializer = GetRequestSerializer(next_play, many=False)
         return Response(serializer.data)
