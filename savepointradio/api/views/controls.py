@@ -5,10 +5,12 @@ from rest_framework import status
 from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.utils import get_setting
+from profiles.exceptions import MakeRequestError
 from profiles.models import RadioProfile, SongRequest
 from radio.models import Song
 from ..permissions import IsAdminOrReadOnly, IsDJ
@@ -64,3 +66,20 @@ class NextRequest(RetrieveAPIView):
 
         serializer = GetRequestSerializer(next_play, many=False)
         return Response(serializer.data)
+
+
+class MakeRequest(APIView):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        serializer = MakeRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            profile = RadioProfile.objects.get(user=request.user)
+            try:
+                profile.make_request(serializer.data['song'])
+            except MakeRequestError as e:
+                return Response({'detail': str(e)},
+                                status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

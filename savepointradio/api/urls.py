@@ -2,7 +2,7 @@ from django.urls import path
 
 from rest_framework.routers import DefaultRouter
 
-from api.views.controls import JustPlayed, NextRequest
+from api.views.controls import JustPlayed, MakeRequest, NextRequest
 from api.views.radio import (AlbumViewSet, ArtistViewSet,
                              GameViewSet, SongViewSet)
 
@@ -17,6 +17,7 @@ router.register(r'songs', SongViewSet, base_name='song')
 urlpatterns = [
     path('next/', NextRequest.as_view()),
     path('played/', JustPlayed.as_view()),
+    path('request/', MakeRequest.as_view()),
 ]
 
 urlpatterns += router.urls
