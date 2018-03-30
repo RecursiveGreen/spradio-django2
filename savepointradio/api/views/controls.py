@@ -47,7 +47,7 @@ class NextRequest(RetrieveAPIView):
 
         limit = get_setting('songs_per_jingle')
         played_songs = SongRequest.music.get_played_requests(limit)
-        if [j for j in played_songs if j.song.song_type == 'J']:
+        if [j for j in played_songs if j.song.is_jingle]:
             if not SongRequest.music.unplayed().exists():
                 random_song = Song.music.get_random_requestable_song()
                 next_play = SongRequest.objects.create(profile=dj_profile,

@@ -135,25 +135,41 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
     class Meta:
         ordering = ['sorted_title', ]
 
-    @property
-    def full_title(self):
+    def _is_jingle(self):
+        """
+        Is the object a jingle?
+        """
+        return self.song_type == 'J'
+    _is_jingle.boolean = True
+    is_jingle = property(_is_jingle)
+
+    def _is_song(self):
+        """
+        Is the object a song?
+        """
+        return self.song_type == 'S'
+    _is_song.boolean = True
+    is_song = property(_is_song)
+
+    def _full_title(self):
         """
         String representing the entire song title, including the game and
         artists involved.
         """
-        if self.song_type == 'S':
+        if self._is_song():
             enabled_artists = self.artists.all().filter(disabled=False)
             all_artists = ', '.join([a.full_name for a in enabled_artists])
             return '{} - {} [{}]'.format(self.game.title,
                                          self.title,
                                          all_artists)
         return self.title
+    full_title = property(_full_title)
 
     def get_time_until_requestable(self):
         """
         Length of time before a song can be requested again.
         """
-        if self.song_type == 'S':
+        if self._is_song():
             if self.last_played:
                 allowed_datetime = Song.music.datetime_from_wait()
                 remaining_wait = self.last_played - allowed_datetime
@@ -167,7 +183,7 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
         """
         Datetime when a song can be requested again.
         """
-        if self.song_type == 'S':
+        if self._is_song():
             return self.last_played + Song.music.wait_total()
         return None
 
@@ -175,7 +191,7 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
         """
         Can the song be requested or not?
         """
-        if self.song_type == 'S':
+        if self._is_song():
             return self.get_date_when_requestable() <= timezone.now()
         return False
     _is_requestable.boolean = True
