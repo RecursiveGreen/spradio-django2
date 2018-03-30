@@ -184,7 +184,9 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
         Datetime when a song can be requested again.
         """
         if self._is_song():
-            return self.last_played + Song.music.wait_total()
+            if self.last_played:
+                return self.last_played + Song.music.wait_total()
+            return timezone.now()
         return None
 
     def _is_requestable(self):
