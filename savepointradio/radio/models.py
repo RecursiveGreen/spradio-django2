@@ -151,6 +151,14 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
     _is_song.boolean = True
     is_song = property(_is_song)
 
+    def _is_available(self):
+        """
+        Is the object both enabled and published?
+        """
+        return self._is_enabled() and self._is_published()
+    _is_available.boolean = True
+    is_available = property(_is_available)
+
     def _full_title(self):
         """
         String representing the entire song title, including the game and
@@ -169,7 +177,7 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
         """
         Length of time before a song can be requested again.
         """
-        if self._is_song():
+        if self._is_song() and self._is_available():
             if self.last_played:
                 allowed_datetime = Song.music.datetime_from_wait()
                 remaining_wait = self.last_played - allowed_datetime
@@ -183,7 +191,7 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
         """
         Datetime when a song can be requested again.
         """
-        if self._is_song():
+        if self._is_song() and self._is_available():
             if self.last_played:
                 return self.last_played + Song.music.wait_total()
             return timezone.now()
@@ -193,7 +201,7 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
         """
         Can the song be requested or not?
         """
-        if self._is_song():
+        if self._is_song() and self._is_available():
             return self.get_date_when_requestable() <= timezone.now()
         return False
     _is_requestable.boolean = True
