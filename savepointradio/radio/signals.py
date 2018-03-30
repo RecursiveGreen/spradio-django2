@@ -31,7 +31,10 @@ def cascade_disable(sender, instance, created, update_fields, **kwargs):
     If a radio object is disabled, be sure to update other objects that are
     linked to it.
     """
-    if 'disabled' in update_fields:
+    if update_fields:
+        if 'disabled' not in update_fields:
+            return
+
         if instance.disabled:
             time = timezone.now()
             if sender == Artist:
