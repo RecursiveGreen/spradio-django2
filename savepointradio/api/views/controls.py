@@ -13,7 +13,7 @@ from core.utils import get_setting
 from profiles.exceptions import MakeRequestError
 from profiles.models import RadioProfile, SongRequest
 from radio.models import Song
-from ..permissions import IsAdminOrReadOnly, IsDJ
+from ..permissions import IsDJ
 from ..serializers.controls import (JustPlayedSerializer,
                                     MakeRequestSerializer,
                                     GetRequestSerializer)
