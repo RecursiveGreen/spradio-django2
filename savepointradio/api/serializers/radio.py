@@ -27,10 +27,22 @@ class GameSerializer(serializers.ModelSerializer):
         fields = ('id', 'title')
 
 
-class SongSerializer(serializers.ModelSerializer):
-    artists = ArtistFullnameSerializer(many=True)
-
+class SongCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
         fields = ('id', 'album', 'artists', 'published_date', 'game',
                   'num_played', 'last_played', 'length', 'song_type', 'title')
+
+    def create(self, validated_data):
+        artists_data = validated_data.pop('artists')
+        song = Song.objects.create(**validated_data)
+        print(artists_data)
+        for artist_data in artists_data:
+            print(artist_data)
+            song.artists.add(artist_data)
+        song.save()
+        return song
+
+
+class SongSerializer(SongCreateSerializer):
+    artists = ArtistFullnameSerializer(many=True)
