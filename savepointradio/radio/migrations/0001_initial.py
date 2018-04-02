@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
                 ('path', models.TextField(verbose_name='absolute path to song file')),
                 ('sorted_title', models.CharField(db_index=True, editable=False, max_length=255, verbose_name='naturalized title')),
                 ('album', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='radio.Album')),
-                ('artists', models.ManyToManyField(to='radio.Artist')),
+                ('artists', models.ManyToManyField(blank=True, to='radio.Artist')),
                 ('game', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='radio.Game')),
             ],
             options={

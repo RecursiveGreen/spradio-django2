@@ -102,7 +102,7 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
                               on_delete=models.SET_NULL,
                               null=True,
                               blank=True)
-    artists = models.ManyToManyField(Artist)
+    artists = models.ManyToManyField(Artist, blank=True)
     game = models.ForeignKey(Game,
                              on_delete=models.SET_NULL,
                              null=True,
