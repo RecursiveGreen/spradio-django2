@@ -27,11 +27,14 @@ class GameSerializer(serializers.ModelSerializer):
         fields = ('id', 'title')
 
 
-class SongCreateSerializer(serializers.ModelSerializer):
+class SongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
         fields = ('id', 'album', 'artists', 'published_date', 'game',
                   'num_played', 'last_played', 'length', 'song_type', 'title')
+
+
+class SongCreateSerializer(SongSerializer):
 
     def create(self, validated_data):
         artists_data = validated_data.pop('artists')
@@ -42,5 +45,11 @@ class SongCreateSerializer(serializers.ModelSerializer):
         return song
 
 
-class SongSerializer(SongCreateSerializer):
+class SongRetrieveSerializer(SongSerializer):
     artists = ArtistFullnameSerializer(many=True)
+
+
+class SongArtistsListSerializer(serializers.Serializer):
+    artists = serializers.ListField(child=serializers.IntegerField(),
+                                    min_length=1,
+                                    max_length=10)
