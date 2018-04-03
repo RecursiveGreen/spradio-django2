@@ -18,7 +18,9 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         else:
-            return request.user.is_authenticated and request.user.is_staff
+            return (request.user.is_authenticated and
+                    request.user.is_staff and
+                    not request.user.is_dj)
 
 
 class IsAdminOwnerOrReadOnly(permissions.BasePermission):
@@ -29,7 +31,9 @@ class IsAdminOwnerOrReadOnly(permissions.BasePermission):
             return True
         else:
             if request.user.is_authenticated:
-                return request.user.is_staff or request.user == obj.user
+                return (request.user.is_staff or
+                        request.user == obj.user and
+                        not request.user.is_dj)
             else:
                 return False
 
