@@ -7,7 +7,19 @@ from api.views.radio import (AlbumViewSet, ArtistViewSet,
                              GameViewSet, SongViewSet)
 
 
-router = DefaultRouter()
+class OptionalSlashRouter(DefaultRouter):
+    '''
+    Custom Router that allows for a trailing slash to be optional in the
+    endpoint URI.
+
+    (Thanks to https://stackoverflow.com/questions/46163838/)
+    '''
+    def __init__(self):
+        super().__init__()
+        self.trailing_slash = '/?'
+
+
+router = OptionalSlashRouter()
 
 router.register(r'albums', AlbumViewSet, base_name='album')
 router.register(r'artists', ArtistViewSet, base_name='artist')
