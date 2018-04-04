@@ -34,17 +34,6 @@ class SongSerializer(serializers.ModelSerializer):
                   'num_played', 'last_played', 'length', 'song_type', 'title')
 
 
-class SongCreateSerializer(SongSerializer):
-
-    def create(self, validated_data):
-        artists_data = validated_data.pop('artists')
-        song = Song.objects.create(**validated_data)
-        for artist_data in artists_data:
-            song.artists.add(artist_data)
-        song.save()
-        return song
-
-
 class SongRetrieveSerializer(SongSerializer):
     artists = ArtistFullnameSerializer(many=True)
 

@@ -8,7 +8,7 @@ from ..permissions import IsAdminOrReadOnly
 from ..serializers.radio import (AlbumSerializer, ArtistSerializer,
                                  GameSerializer, SongSerializer,
                                  SongArtistsListSerializer,
-                                 SongCreateSerializer, SongRetrieveSerializer)
+                                 SongRetrieveSerializer)
 
 
 class AlbumViewSet(viewsets.ModelViewSet):
@@ -40,8 +40,6 @@ class SongViewSet(viewsets.ModelViewSet):
 
         (Thanks to https://stackoverflow.com/questions/22616973/)
         '''
-        if self.action == 'create':
-            return SongCreateSerializer
         if self.action in ['list', 'retrieve']:
             return SongRetrieveSerializer
         return SongSerializer
