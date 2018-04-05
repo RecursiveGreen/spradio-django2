@@ -6,9 +6,9 @@ from rest_framework.response import Response
 from radio.models import Album, Artist, Game, Song
 from ..permissions import IsAdminOrReadOnly
 from ..serializers.radio import (AlbumSerializer, ArtistSerializer,
-                                 GameSerializer, SongSerializer,
+                                 GameSerializer, FullSongSerializer,
                                  SongArtistsListSerializer,
-                                 SongRetrieveSerializer)
+                                 FullSongRetrieveSerializer)
 
 
 class AlbumViewSet(viewsets.ModelViewSet):
@@ -32,7 +32,6 @@ class GameViewSet(viewsets.ModelViewSet):
 class SongViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     queryset = Song.objects.all()
-    serializer_class = SongSerializer
 
     def get_serializer_class(self):
         '''
@@ -41,8 +40,8 @@ class SongViewSet(viewsets.ModelViewSet):
         (Thanks to https://stackoverflow.com/questions/22616973/)
         '''
         if self.action in ['list', 'retrieve']:
-            return SongRetrieveSerializer
-        return SongSerializer
+            return FullSongRetrieveSerializer
+        return FullSongSerializer
 
     def _change_artists(self, request, remove=False):
         song = self.get_object()

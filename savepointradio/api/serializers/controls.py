@@ -4,7 +4,7 @@ from rest_framework.serializers import (IntegerField,
                                         StringRelatedField)
 
 from profiles.models import SongRequest
-from radio.models import Song
+from .radio import RadioSongSerializer
 
 
 class JustPlayedSerializer(Serializer):
@@ -15,19 +15,8 @@ class MakeRequestSerializer(Serializer):
     song = IntegerField()
 
 
-class NextSongSerializer(ModelSerializer):
-    album = StringRelatedField(many=False)
-    artists = StringRelatedField(many=True)
-    game = StringRelatedField(many=False)
-
-    class Meta:
-        model = Song
-        fields = ('id', 'album', 'artists', 'game',
-                  'song_type', 'title', 'length', 'path')
-
-
 class GetRequestSerializer(ModelSerializer):
-    song = NextSongSerializer(many=False)
+    song = RadioSongSerializer()
 
     class Meta:
         model = SongRequest
