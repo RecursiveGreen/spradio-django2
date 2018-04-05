@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404
 
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from profiles.models import RadioProfile, Rating, SongRequest
@@ -42,3 +42,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
             self.is_owner = False
         self.check_object_permissions(self.request, obj)
         return obj
+
+
+class HistoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    permission_classes = [AllowAny]
+    queryset = SongRequest.objects.all()
+    serializer_class = HistorySerializer

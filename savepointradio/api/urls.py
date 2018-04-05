@@ -3,7 +3,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from api.views.controls import JustPlayed, MakeRequest, NextRequest
-from api.views.profiles import ProfileViewSet
+from api.views.profiles import HistoryViewSet, ProfileViewSet
 from api.views.radio import (AlbumViewSet, ArtistViewSet,
                              GameViewSet, SongViewSet)
 
@@ -22,6 +22,7 @@ class OptionalSlashRouter(DefaultRouter):
 
 router = OptionalSlashRouter()
 
+router.register(r'history', HistoryViewSet, base_name='history')
 router.register(r'profiles', ProfileViewSet, base_name='profile')
 
 router.register(r'albums', AlbumViewSet, base_name='album')

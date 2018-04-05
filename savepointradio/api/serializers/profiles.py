@@ -2,16 +2,11 @@ from django.contrib.auth import get_user_model
 
 from rest_framework.serializers import ModelSerializer
 
-from profiles.models import (RadioProfile, SongRequest)
+from profiles.models import RadioProfile, SongRequest
+from .radio import BasicSongRetrieveSerializer
 
 
 User = get_user_model()
-
-
-class HistorySerializer(ModelSerializer):
-    class Meta:
-        model = SongRequest
-        fields = ('created_date', 'played_at', 'profile', 'song')
 
 
 class BasicUserSerializer(ModelSerializer):
@@ -36,3 +31,12 @@ class BasicProfileSerializer(ModelSerializer):
 
 class FullProfileSerializer(BasicProfileSerializer):
     user = FullUserSerializer()
+
+
+class HistorySerializer(ModelSerializer):
+    profile = BasicProfileSerializer()
+    song = BasicSongRetrieveSerializer()
+
+    class Meta:
+        model = SongRequest
+        fields = ('created_date', 'played_at', 'profile', 'song')
