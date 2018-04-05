@@ -35,7 +35,9 @@ class SongSerializer(serializers.ModelSerializer):
 
 
 class SongRetrieveSerializer(SongSerializer):
+    album = AlbumSerializer()
     artists = ArtistFullnameSerializer(many=True)
+    game = GameSerializer()
 
 
 class SongArtistsListSerializer(serializers.Serializer):
