@@ -43,7 +43,7 @@ class SongViewSet(viewsets.ModelViewSet):
             return FullSongRetrieveSerializer
         return FullSongSerializer
 
-    def _change_artists(self, request, remove=False):
+    def _artists_change(self, request, remove=False):
         song = self.get_object()
         serializer = SongArtistsListSerializer(data=request.data)
         if serializer.is_valid():
@@ -62,9 +62,9 @@ class SongViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=['post'], detail=True, permission_classes=[IsAdminUser])
-    def add_artists(self, request, pk=None):
-        return self._change_artists(request)
+    def artists_add(self, request, pk=None):
+        return self._artists_change(request)
 
     @action(methods=['post'], detail=True, permission_classes=[IsAdminUser])
-    def remove_artists(self, request, pk=None):
-        return self._change_artists(request, remove=True)
+    def artists_remove(self, request, pk=None):
+        return self._artists_change(request, remove=True)
