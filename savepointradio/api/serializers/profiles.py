@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import (IntegerField, ModelSerializer,
+                                        Serializer)
 
 from profiles.models import RadioProfile, SongRequest
 from .radio import BasicSongRetrieveSerializer
@@ -31,6 +32,10 @@ class BasicProfileSerializer(ModelSerializer):
 
 class FullProfileSerializer(BasicProfileSerializer):
     user = FullUserSerializer()
+
+
+class FavoriteSongSerializer(Serializer):
+    song = IntegerField()
 
 
 class HistorySerializer(ModelSerializer):

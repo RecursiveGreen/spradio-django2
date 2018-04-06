@@ -6,10 +6,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from profiles.models import RadioProfile, Rating, SongRequest
+from radio.models import Song
 from ..permissions import IsAdminOwnerOrReadOnly
 from ..serializers.profiles import (BasicProfileSerializer,
                                     FullProfileSerializer,
+                                    FavoriteSongSerializer,
                                     HistorySerializer)
+from ..serializers.radio import BasicSongRetrieveSerializer
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -42,6 +45,47 @@ class ProfileViewSet(viewsets.ModelViewSet):
             self.is_owner = False
         self.check_object_permissions(self.request, obj)
         return obj
+
+    @action(detail=True, permission_classes=[AllowAny])
+    def favorites(self, request, pk=None):
+        profile = self.get_object()
+        favorites = profile.favorites.all().order_by('sorted_title')
+
+        page = self.paginate_queryset(favorites)
+        if page is not None:
+            serializer = BasicSongRetrieveSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = BasicSongRetrieveSerializer(favorites, many=True)
+        return Response(serializer.data)
+
+    def _favorite_change(self, request, remove=False):
+        profile = self.get_object()
+        serializer = FavoriteSongSerializer(data=request.data)
+        if serializer.is_valid():
+            song = Song.objects.get(pk=serializer.data['song'])
+            if remove:
+                profile.favorites.remove(song)
+            else:
+                profile.favorites.add(song)
+            profile.save()
+            message = 'Song {} favorites.'.format(('added to',
+                                                   'removed from')[remove])
+            return Response({'detail': message})
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'],
+            detail=True,
+            permission_classes=[IsAdminOwnerOrReadOnly])
+    def favorite_add(self, request, pk=None):
+        return self._favorite_change(request)
+
+    @action(methods=['post'],
+            detail=True,
+            permission_classes=[IsAdminOwnerOrReadOnly])
+    def favorite_remove(self, request, pk=None):
+        return self._favorite_change(request, remove=True)
 
 
 class HistoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
