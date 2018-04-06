@@ -31,8 +31,8 @@ class IsAdminOwnerOrReadOnly(permissions.BasePermission):
             return True
         else:
             if request.user.is_authenticated:
-                return (request.user.is_staff or
-                        request.user == obj.user and
+                return ((request.user.is_staff or
+                        request.user == obj.user) and
                         not request.user.is_dj)
             else:
                 return False
