@@ -11,7 +11,8 @@ from ..permissions import IsAdminOwnerOrReadOnly
 from ..serializers.profiles import (BasicProfileSerializer,
                                     FullProfileSerializer,
                                     FavoriteSongSerializer,
-                                    HistorySerializer)
+                                    HistorySerializer,
+                                    BasicProfileRatingsSerializer)
 from ..serializers.radio import BasicSongRetrieveSerializer
 
 
@@ -45,6 +46,19 @@ class ProfileViewSet(viewsets.ModelViewSet):
             self.is_owner = False
         self.check_object_permissions(self.request, obj)
         return obj
+
+    @action(detail=True, permission_classes=[AllowAny])
+    def ratings(self, request, pk=None):
+        profile = self.get_object()
+        ratings = profile.rating_profile.all().order_by('-created_date')
+
+        page = self.paginate_queryset(ratings)
+        if page is not None:
+            serializer = BasicProfileRatingsSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = BasicProfileRatingsSerializer(ratings, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, permission_classes=[AllowAny])
     def favorites(self, request, pk=None):

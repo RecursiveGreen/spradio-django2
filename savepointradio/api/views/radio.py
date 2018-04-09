@@ -1,10 +1,13 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
+from profiles.models import RadioProfile, Rating
 from radio.models import Album, Artist, Game, Song
-from ..permissions import IsAdminOrReadOnly
+from ..permissions import IsAdminOrReadOnly, IsAuthenticatedAndNotDJ
+from ..serializers.profiles import (BasicSongRatingsSerializer,
+                                    RateSongSerializer)
 from ..serializers.radio import (AlbumSerializer, ArtistSerializer,
                                  GameSerializer, FullSongSerializer,
                                  SongArtistsListSerializer,
@@ -68,3 +71,46 @@ class SongViewSet(viewsets.ModelViewSet):
     @action(methods=['post'], detail=True, permission_classes=[IsAdminUser])
     def artists_remove(self, request, pk=None):
         return self._artists_change(request, remove=True)
+
+    @action(detail=True, permission_classes=[AllowAny])
+    def ratings(self, request, pk=None):
+        song = self.get_object()
+        ratings = song.rating_set.all().order_by('-created_date')
+
+        page = self.paginate_queryset(ratings)
+        if page is not None:
+            serializer = BasicSongRatingsSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = BasicSongRatingsSerializer(ratings, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['post'],
+            detail=True,
+            permission_classes=[IsAuthenticatedAndNotDJ])
+    def rate(self, request, pk=None):
+        song = self.get_object()
+        serializer = RateSongSerializer(data=request.data)
+        if serializer.is_valid():
+            profile = RadioProfile.objects.get(user=request.user)
+
+            if serializer.data['rating'] == 0:
+                rating = song.rating_set.filter(profile=profile)
+                if rating:
+                    rating.delete()
+                    return Response({'detail': 'Rating deleted from song.'})
+                message = 'Cannot delete nonexistant rating.'
+                return Response({'detail': message},
+                                status=status.HTTP_400_BAD_REQUEST)
+            else:
+                rating, created = Rating.objects.update_or_create(
+                    profile=profile,
+                    song=song,
+                    defaults={'value': serializer.data['rating']}
+                )
+            message = 'Rating {} song.'.format(('updated for',
+                                                'created for')[created])
+            return Response({'detail': message})
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
