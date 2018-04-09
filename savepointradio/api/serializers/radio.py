@@ -32,14 +32,16 @@ class GameSerializer(ModelSerializer):
 class BasicSongSerializer(ModelSerializer):
     class Meta:
         model = Song
-        fields = ('id', 'album', 'artists', 'game', 'title')
+        fields = ('id', 'album', 'artists', 'game', 'title', 'average_rating',
+                  'is_requestable')
 
 
 class FullSongSerializer(ModelSerializer):
     class Meta:
         model = Song
         fields = ('id', 'album', 'artists', 'published_date', 'game',
-                  'num_played', 'last_played', 'length', 'song_type', 'title')
+                  'num_played', 'last_played', 'length', 'song_type', 'title',
+                  'average_rating', 'is_requestable')
 
 
 class BasicSongRetrieveSerializer(BasicSongSerializer):

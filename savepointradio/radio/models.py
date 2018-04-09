@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import getcontext, Decimal, ROUND_UP
 
 from django.apps import apps
 from django.db import models
@@ -7,6 +8,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from core.behaviors import Disableable, Publishable, Timestampable
 from .managers import RadioManager, SongManager
+
+
+# Set decimal precision
+getcontext().prec = 16
 
 
 class Album(Disableable, Publishable, Timestampable, models.Model):
@@ -173,6 +178,17 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
                                          all_artists)
         return self.title
     full_title = property(_full_title)
+
+    def _average_rating(self):
+        """
+        Decimal number of the average rating of a song from 1 - 5.
+        """
+        ratings = self.rating_set.all()
+        if ratings:
+            avg = Decimal(ratings.aggregate(avg=models.Avg('value'))['avg'])
+            return avg.quantize(Decimal('.01'), rounding=ROUND_UP)
+        return None
+    average_rating = property(_average_rating)
 
     def get_time_until_requestable(self):
         """
