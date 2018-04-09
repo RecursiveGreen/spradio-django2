@@ -32,7 +32,7 @@ class IsAdminOwnerOrReadOnly(permissions.BasePermission):
         else:
             if request.user.is_authenticated:
                 return ((request.user.is_staff or
-                        request.user == obj.user) and
+                         request.user == obj.user) and
                         not request.user.is_dj)
             else:
                 return False
@@ -44,5 +44,15 @@ class IsDJ(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.user.is_authenticated:
             return request.user.is_dj
+        else:
+            return False
+
+
+class IsAuthenticatedAndNotDJ(permissions.BasePermission):
+    message = 'Only an authenticated user can make changes to this object.'
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            return not request.user.is_dj
         else:
             return False
