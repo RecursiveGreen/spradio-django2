@@ -5,12 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from profiles.models import RadioProfile, Rating, SongRequest
-from radio.models import Song
+from profiles.models import RadioProfile, SongRequest
 from ..permissions import IsAdminOwnerOrReadOnly
 from ..serializers.profiles import (BasicProfileSerializer,
                                     FullProfileSerializer,
-                                    FavoriteSongSerializer,
                                     HistorySerializer,
                                     BasicProfileRatingsSerializer)
 from ..serializers.radio import BasicSongRetrieveSerializer
@@ -48,19 +46,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return obj
 
     @action(detail=True, permission_classes=[AllowAny])
-    def ratings(self, request, pk=None):
-        profile = self.get_object()
-        ratings = profile.rating_profile.all().order_by('-created_date')
-
-        page = self.paginate_queryset(ratings)
-        if page is not None:
-            serializer = BasicProfileRatingsSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = BasicProfileRatingsSerializer(ratings, many=True)
-        return Response(serializer.data)
-
-    @action(detail=True, permission_classes=[AllowAny])
     def favorites(self, request, pk=None):
         profile = self.get_object()
         favorites = profile.favorites.all().order_by('sorted_title')
@@ -73,33 +58,18 @@ class ProfileViewSet(viewsets.ModelViewSet):
         serializer = BasicSongRetrieveSerializer(favorites, many=True)
         return Response(serializer.data)
 
-    def _favorite_change(self, request, remove=False):
+    @action(detail=True, permission_classes=[AllowAny])
+    def ratings(self, request, pk=None):
         profile = self.get_object()
-        serializer = FavoriteSongSerializer(data=request.data)
-        if serializer.is_valid():
-            song = Song.objects.get(pk=serializer.data['song'])
-            if remove:
-                profile.favorites.remove(song)
-            else:
-                profile.favorites.add(song)
-            profile.save()
-            message = 'Song {} favorites.'.format(('added to',
-                                                   'removed from')[remove])
-            return Response({'detail': message})
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        ratings = profile.rating_profile.all().order_by('-created_date')
 
-    @action(methods=['post'],
-            detail=True,
-            permission_classes=[IsAdminOwnerOrReadOnly])
-    def favorite_add(self, request, pk=None):
-        return self._favorite_change(request)
+        page = self.paginate_queryset(ratings)
+        if page is not None:
+            serializer = BasicProfileRatingsSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
 
-    @action(methods=['post'],
-            detail=True,
-            permission_classes=[IsAdminOwnerOrReadOnly])
-    def favorite_remove(self, request, pk=None):
-        return self._favorite_change(request, remove=True)
+        serializer = BasicProfileRatingsSerializer(ratings, many=True)
+        return Response(serializer.data)
 
 
 class HistoryViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

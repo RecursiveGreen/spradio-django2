@@ -38,6 +38,10 @@ class FavoriteSongSerializer(Serializer):
     song = IntegerField()
 
 
+class RateSongSerializer(Serializer):
+    value = IntegerField(min_value=0, max_value=5, required=False)
+
+
 class HistorySerializer(ModelSerializer):
     profile = BasicProfileSerializer()
     song = BasicSongRetrieveSerializer()
@@ -61,7 +65,3 @@ class BasicSongRatingsSerializer(ModelSerializer):
     class Meta:
         model = Rating
         fields = ('created_date', 'profile', 'value')
-
-
-class RateSongSerializer(Serializer):
-    rating = IntegerField(min_value=0, max_value=5)

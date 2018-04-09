@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from profiles.models import RadioProfile, Rating
 from radio.models import Album, Artist, Game, Song
 from ..permissions import IsAdminOrReadOnly, IsAuthenticatedAndNotDJ
-from ..serializers.profiles import (BasicSongRatingsSerializer,
+from ..serializers.profiles import (BasicProfileSerializer,
+                                    BasicSongRatingsSerializer,
                                     RateSongSerializer)
 from ..serializers.radio import (AlbumSerializer, ArtistSerializer,
                                  GameSerializer, FullSongSerializer,
@@ -73,6 +74,48 @@ class SongViewSet(viewsets.ModelViewSet):
         return self._artists_change(request, remove=True)
 
     @action(detail=True, permission_classes=[AllowAny])
+    def favorites(self, request, pk=None):
+        song = self.get_object()
+        profiles = song.song_favorites.all().order_by('user__name')
+
+        page = self.paginate_queryset(profiles)
+        if page is not None:
+            serializer = BasicProfileSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = BasicProfileSerializer(profiles, many=True)
+        return Response(serializer.data)
+
+    @action(methods=['post'],
+            detail=True,
+            permission_classes=[IsAuthenticatedAndNotDJ])
+    def favorite(self, request, pk=None):
+        song = self.get_object()
+        profile = RadioProfile.objects.get(user=request.user)
+        if song not in profile.favorites.all():
+            profile.favorites.add(song)
+            profile.save()
+            return Response({'detail': 'Song has been added to favorites.'})
+        message = 'Song is already a favorite.'
+        return Response({'detail': message},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'],
+            detail=True,
+            permission_classes=[IsAuthenticatedAndNotDJ])
+    def unfavorite(self, request, pk=None):
+        song = self.get_object()
+        profile = RadioProfile.objects.get(user=request.user)
+        if song in profile.favorites.all():
+            profile.favorites.remove(song)
+            profile.save()
+            message = 'Song has been removed from favorites.'
+            return Response({'detail': message})
+        message = 'Song is already not a favorite.'
+        return Response({'detail': message},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, permission_classes=[AllowAny])
     def ratings(self, request, pk=None):
         song = self.get_object()
         ratings = song.rating_set.all().order_by('-created_date')
@@ -89,28 +132,35 @@ class SongViewSet(viewsets.ModelViewSet):
             detail=True,
             permission_classes=[IsAuthenticatedAndNotDJ])
     def rate(self, request, pk=None):
-        song = self.get_object()
         serializer = RateSongSerializer(data=request.data)
         if serializer.is_valid():
+            song = self.get_object()
             profile = RadioProfile.objects.get(user=request.user)
-
-            if serializer.data['rating'] == 0:
-                rating = song.rating_set.filter(profile=profile)
-                if rating:
-                    rating.delete()
-                    return Response({'detail': 'Rating deleted from song.'})
-                message = 'Cannot delete nonexistant rating.'
-                return Response({'detail': message},
-                                status=status.HTTP_400_BAD_REQUEST)
-            else:
+            if 'value' in serializer.data:
                 rating, created = Rating.objects.update_or_create(
                     profile=profile,
                     song=song,
-                    defaults={'value': serializer.data['rating']}
+                    defaults={'value': serializer.data['value']}
                 )
-            message = 'Rating {} song.'.format(('updated for',
-                                                'created for')[created])
-            return Response({'detail': message})
-        else:
-            return Response(serializer.errors,
+                message = 'Rating {} song.'.format(('updated for',
+                                                    'created for')[created])
+                return Response({'detail': message})
+            message = 'Missing integer \'value\' for song rating.'
+            return Response({'detail': message},
                             status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'],
+            detail=True,
+            permission_classes=[IsAuthenticatedAndNotDJ])
+    def unrate(self, request, pk=None):
+        song = self.get_object()
+        profile = RadioProfile.objects.get(user=request.user)
+        rating = song.rating_set.filter(profile=profile)
+        if rating:
+            rating.delete()
+            return Response({'detail': 'Rating deleted from song.'})
+        message = 'Cannot delete nonexistant rating.'
+        return Response({'detail': message},
+                        status=status.HTTP_400_BAD_REQUEST)
