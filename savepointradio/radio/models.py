@@ -200,7 +200,6 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
                 remaining_wait = self.last_played - allowed_datetime
                 if remaining_wait.total_seconds() > 0:
                     return remaining_wait
-                return timedelta(seconds=0)
             return timedelta(seconds=0)
         return None
 
