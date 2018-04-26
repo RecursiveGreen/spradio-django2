@@ -49,6 +49,12 @@ class RadioManager(models.Manager):
         """
         return self.get_queryset().unpublished()
 
+    def available(self):
+        """
+        Radio objects that are enabled and published.
+        """
+        return self.enabled().published()
+
 
 class SongManager(RadioManager):
     """

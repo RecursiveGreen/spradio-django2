@@ -17,25 +17,65 @@ from ..serializers.radio import (AlbumSerializer, ArtistSerializer,
 
 class AlbumViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Album.objects.all()
     serializer_class = AlbumSerializer
+
+    def get_queryset(self):
+        '''
+        Only send full data to an admin. All regular users get filtered
+        albums.
+        '''
+        if (self.request.user.is_authenticated and
+            self.request.user.is_staff and
+            not self.request.user.is_dj):
+            return Album.objects.all()
+        return Album.music.available()
 
 
 class ArtistViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Artist.objects.all()
     serializer_class = ArtistSerializer
+
+    def get_queryset(self):
+        '''
+        Only send full data to an admin. All regular users get filtered
+        artists.
+        '''
+        if (self.request.user.is_authenticated and
+            self.request.user.is_staff and
+            not self.request.user.is_dj):
+            return Artist.objects.all()
+        return Artist.music.available()
 
 
 class GameViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Game.objects.all()
     serializer_class = GameSerializer
+
+    def get_queryset(self):
+        '''
+        Only send full data to an admin. All regular users get filtered
+        games.
+        '''
+        if (self.request.user.is_authenticated and
+            self.request.user.is_staff and
+            not self.request.user.is_dj):
+            return Game.objects.all()
+        return Game.music.available()
 
 
 class SongViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Song.objects.all()
+
+    def get_queryset(self):
+        '''
+        Only send full data to an admin. All regular users get filtered
+        songs.
+        '''
+        if (self.request.user.is_authenticated and
+            self.request.user.is_staff and
+            not self.request.user.is_dj):
+            return Song.objects.all()
+        return Song.music.available_songs()
 
     def get_serializer_class(self):
         '''
