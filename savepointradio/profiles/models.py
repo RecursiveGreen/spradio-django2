@@ -48,7 +48,10 @@ class RadioProfile(Disableable, Timestampable, models.Model):
 
     def make_request(self, song_requested):
         if isinstance(song_requested, int):
-            song = Song.objects.get(pk=song_requested)
+            try:
+                song = Song.objects.get(pk=song_requested)
+            except Song.DoesNotExist:
+                raise MakeRequestError('Song does not exist.')
         else:
             song = song_requested
 
