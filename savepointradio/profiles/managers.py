@@ -6,8 +6,7 @@ class RequestManager(models.Manager):
         return super().get_queryset()
 
     def unplayed(self):
-        return self.get_queryset().filter(queued_at__isnull=True,
-                                          played_at__isnull=True)
+        return self.get_queryset().filter(played_at__isnull=True)
 
     def played(self):
         return self.get_queryset().filter(models.Q(queued_at__isnull=False) |
