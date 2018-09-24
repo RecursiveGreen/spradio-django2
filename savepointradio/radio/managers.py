@@ -70,13 +70,13 @@ class SongManager(RadioManager):
         """
         Jingles that are currently published and are enabled.
         """
-        return self.enabled().published().jingles()
+        return self.available().jingles()
 
     def available_songs(self):
         """
         Songs that are currently published and are enabled.
         """
-        return self.enabled().published().songs()
+        return self.available().songs()
 
     def playlist_length(self):
         """
