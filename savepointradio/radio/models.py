@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from core.behaviors import Disableable, Publishable, Timestampable
+from core.utils import get_setting
 from .managers import RadioManager, SongManager
 
 
@@ -123,6 +124,10 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
                                        null=True,
                                        blank=True,
                                        editable=False)
+    next_play = models.DateTimeField(_('can be played again'),
+                                     null=True,
+                                     blank=True,
+                                     editable=False)
     length = models.DecimalField(_('song length (in seconds)'),
                                  max_digits=8,
                                  decimal_places=2,
@@ -203,13 +208,26 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
             return timedelta(seconds=0)
         return None
 
-    def get_date_when_requestable(self):
+    def get_date_when_requestable(self, last_play=None):
         """
         Datetime when a song can be requested again.
         """
+        last = self.last_played if last_play is None else last_play
+
         if self._is_song() and self._is_available():
-            if self.last_played:
-                return self.last_played + Song.music.wait_total()
+            if last:
+                # Check if we have enough ratings to change ratio
+                min_ratings = get_setting('min_ratings_for_variance')
+                if self.rating_set.count() >= min_ratings:
+                    rate_ratio = get_setting('rating_variance_ratio')
+
+                    # -((average - 1)/(highest_rating - 1)) * rating_ratio
+                    base = -((self._average_rating() - 1) / 4) * rate_ratio
+                    adjusted_ratio = float(base + (rate_ratio * 0.5))
+                else:
+                    adjusted_ratio = float(0.0)
+
+                return last + Song.music.wait_total(adjusted_ratio)
             return timezone.now()
         return None
 

@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 
 def default_settings(apps, schema_editor):
-    SETTING_TYPES = { 'Integer': 0, 'Float': 1, 'String': 2, 'Bool': 3 }
+    SETTING_TYPES = {'Integer': 0, 'Float': 1, 'String': 2, 'Bool': 3}
     Setting = apps.get_model('core', 'Setting')
     db_alias = schema_editor.connection.alias
     Setting.objects.using(db_alias).bulk_create([
@@ -14,6 +14,16 @@ def default_settings(apps, schema_editor):
                             'not apply to users who are designated as staff.',
                 setting_type=SETTING_TYPES['Integer'],
                 data='5'),
+        Setting(name='min_ratings_for_variance',
+                description='The minimum amount of ratings for the rating '
+                            'variance to take effect on the replay ratios.',
+                setting_type=SETTING_TYPES['Integer'],
+                data='5'),
+        Setting(name='rating_variance_ratio',
+                description='The range in which the replay ratio can be '
+                            'adjusted due to profile ratings.',
+                setting_type=SETTING_TYPES['Float'],
+                data='0.20'),
         Setting(name='replay_ratio',
                 description='This defines how long before a song can be '
                             'played/requested again once it\'s been played. '
@@ -21,9 +31,10 @@ def default_settings(apps, schema_editor):
                             'all the enabled, requestable songs in the radio '
                             'playlist. Example: If the total song length of '
                             'the radio playlist is 432000 seconds (5 days), '
-                            'then a ratio of 0.75 will mean that a song cannot '
-                            'be played again for 324000 seconds (0.75 * 432000 '
-                            '= 324000 seconds = 3 days, 18 hours).',
+                            'then a ratio of 0.75 will mean that a song '
+                            'cannot be played again for 324000 seconds '
+                            '(0.75 * 432000 = 324000 seconds = 3 days, 18 '
+                            'hours).',
                 setting_type=SETTING_TYPES['Float'],
                 data='0.75'),
         Setting(name='songs_per_jingle',

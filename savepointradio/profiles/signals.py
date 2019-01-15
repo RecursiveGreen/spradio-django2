@@ -18,12 +18,18 @@ def create_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=SongRequest)
 def update_song_plays(sender, instance, created, update_fields, **kwargs):
     """
-    Update the song data with the latest play time and the number of times
+    Set when a song can be requested again once it's queued. Once played,
+    update the song data with the latest play time and the number of times
     played.
     """
     if not created and update_fields:
+        song = instance.song
         if 'played_at' in update_fields:
-            song = instance.song
             song.last_played = instance.played_at
             song.num_played = F('num_played') + 1
             song.save()
+        if 'queued_at' in update_fields:
+            if song.is_song:
+                queued = instance.queued_at
+                song.next_play = song.get_date_when_requestable(queued)
+                song.save()

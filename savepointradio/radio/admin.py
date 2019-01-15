@@ -113,7 +113,8 @@ class SongAdmin(admin.ModelAdmin):
                     'album',
                     'artist_list',
                     '_is_enabled',
-                    '_is_published')
+                    '_is_published',
+                    '_is_requestable')
     search_fields = ['title']
     actions = ['publish_songs',
                'add_game', 'remove_game',
@@ -126,7 +127,8 @@ class SongAdmin(admin.ModelAdmin):
                        'last_played',
                        'num_played',
                        'created_date',
-                       'modified_date')
+                       'modified_date',
+                       'next_play')
     fieldsets = (
         ('Song Disabling', {
             'classes': ('collapse',),
@@ -144,6 +146,7 @@ class SongAdmin(admin.ModelAdmin):
                        'modified_date',
                        'last_played',
                        'num_played',
+                       'next_play',
                        'length')
         }),
         ('Album', {

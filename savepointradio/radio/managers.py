@@ -85,12 +85,13 @@ class SongManager(RadioManager):
         length = self.available_songs().aggregate(models.Sum('length'))
         return length['length__sum']
 
-    def wait_total(self):
+    def wait_total(self, adjusted_ratio=0.0):
         """
         Default length in seconds before a song can be played again. This is
         based on the replay ratio set in the application settings.
         """
-        wait = self.playlist_length() * Decimal(get_setting('replay_ratio'))
+        total_ratio = get_setting('replay_ratio') + adjusted_ratio
+        wait = self.playlist_length() * Decimal(total_ratio)
         wait = wait.quantize(Decimal('.01'), rounding=ROUND_UP)
         return timedelta(seconds=float(wait))
 
@@ -107,8 +108,8 @@ class SongManager(RadioManager):
         (or at all).
         """
         return self.available_songs().filter(
-                    models.Q(last_played__lt=self.datetime_from_wait()) |
-                    models.Q(last_played__isnull=True)
+                    models.Q(next_play__lt=timezone.now()) |
+                    models.Q(next_play__isnull=True)
                )
 
     def requestable(self):
