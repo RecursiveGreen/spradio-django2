@@ -136,7 +136,7 @@ class Command(BaseCommand):
                     new_song.artists.add(new_artist)
 
             self.stdout.write(
-                'Imported {} songs ({} requestables, {} jingles)'.format(
+                'Imported {} requestables ({} songs, {} jingles)'.format(
                     str(total_songs + total_jingles),
                     str(total_songs),
                     str(total_jingles)
