@@ -30,11 +30,20 @@ class JustPlayed(APIView):
         serializer = JustPlayedSerializer(data=request.data)
         if serializer.is_valid():
             request_pk = serializer.data['song_request']
-            song_request = SongRequest.objects.get(pk=request_pk)
+            try:
+                song_request = SongRequest.objects.get(pk=request_pk)
+            except SongRequest.DoesNotExist:
+                return Response({'detail': 'Song request does not exist.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            if song_request.played_at:
+                return Response({'detail': 'Song request was already played.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
             song_request.played_at = timezone.now()
             song_request.save(update_fields=['played_at'])
 
-            return Response(serializer.data)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -81,5 +90,5 @@ class MakeRequest(APIView):
             except MakeRequestError as e:
                 return Response({'detail': str(e)},
                                 status=status.HTTP_400_BAD_REQUEST)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
