@@ -74,6 +74,9 @@ SITE_ID = 1
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = config('STATIC_ROOT',
+                     default=os.path.join(PROJECT_DIR, 'static/'))
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -90,7 +93,7 @@ TEMPLATES = [
     },
 ]
 
-TIME_ZONE = 'America/New_York'
+TIME_ZONE = config('TIME_ZONE', default='America/New_York')
 
 USE_I18N = True
 
