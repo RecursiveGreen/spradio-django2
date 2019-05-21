@@ -1,12 +1,15 @@
 import os
 
 from decouple import config
+from dj_database_url import parse as db_url
 
 
 SETTINGS_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_DIR = os.path.dirname(SETTINGS_DIR)
 PROJECT_DIR = os.path.dirname(CONFIG_DIR)
 BASE_DIR = os.path.dirname(PROJECT_DIR)
+
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 #
 #  Django-specific settings
@@ -28,6 +31,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = 'core.RadioUser'
+
+DATABASES = {
+    'default': config(
+        'DATABASE_URL',
+        default='sqlite:///' + os.path.join(PROJECT_DIR, 'spradio.sqlite3'),
+        cast=db_url
+    )
+}
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
