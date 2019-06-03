@@ -42,7 +42,7 @@ class Command(BaseCommand):
         for album in playlist['albums']:
             Album.objects.create(title=album['title'],
                                  disabled=album['disabled'])
-            total_albums += 1
+            totals['albums'] += 1
 
         self.stdout.write('Imported {} albums'.format(str(totals['albums'])))
 
@@ -52,7 +52,7 @@ class Command(BaseCommand):
                                   first_name=artist['first_name'] or '',
                                   last_name=artist['last_name'] or '',
                                   disabled=artist['disabled'])
-            total_artists += 1
+            totals['artists'] += 1
 
         self.stdout.write('Imported {} artists'.format(str(totals['artists'])))
 
@@ -60,7 +60,7 @@ class Command(BaseCommand):
         for game in playlist['games']:
             Game.objects.create(title=game['title'],
                                 disabled=game['disabled'])
-            total_games += 1
+            totals['games'] += 1
 
         self.stdout.write('Imported {} games'.format(str(totals['games'])))
 
