@@ -1,3 +1,7 @@
+'''
+Django settings file.
+'''
+
 import os
 
 from decouple import config
