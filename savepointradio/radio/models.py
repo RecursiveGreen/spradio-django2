@@ -13,7 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from core.behaviors import Disableable, Publishable, Timestampable
 from core.utils import get_setting
-from .fields import RadioIRIField
+# from .fields import RadioIRIField
 from .managers import RadioManager, SongManager
 
 
@@ -104,7 +104,17 @@ class Store(Timestampable, models.Model):
     '''
     A model to represent various data locations (stores) for the song.
     '''
-    iri = RadioIRIField()
+    # TODO: Because of a shortcoming of Django's URLValidator code, the
+    # 'file://' scheme does not validate properly on most cases due to
+    # incompatibilities with optional hostnames. Disabling the custom field
+    # for now until I can figure out a non-lethal way of handling this.
+    # https://code.djangoproject.com/ticket/25594
+    # https://code.djangoproject.com/ticket/25595
+    # https://stackoverflow.com/questions/41756572/
+
+    # iri = RadioIRIField()
+
+    iri = models.TextField(_('IRI path to song file'))
     mime_type = models.CharField(_('file MIME type'),
                                  max_length=64,
                                  blank=True)
