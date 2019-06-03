@@ -118,6 +118,9 @@ class Store(Timestampable, models.Model):
                                  null=True,
                                  blank=True)
 
+    def __str__(self):
+        return self.iri
+
 
 class Song(Disableable, Publishable, Timestampable, models.Model):
     '''
