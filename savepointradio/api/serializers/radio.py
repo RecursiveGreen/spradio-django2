@@ -44,7 +44,7 @@ class StoreSerializer(ModelSerializer):
 
     class Meta:
         model = Store
-        fields = ('id', 'iri', 'file_size', 'length', 'mime_type')
+        fields = ('id', 'active', 'iri', 'file_size', 'length', 'mime_type')
 
     def get_active(self, obj):
         '''Checks to see if this store is active for a song.'''
