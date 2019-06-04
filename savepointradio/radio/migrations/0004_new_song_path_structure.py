@@ -37,8 +37,8 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='song',
-            name='current_store',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='current_of', to='radio.Store'),
+            name='active_store',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='active_for', to='radio.Store'),
         ),
         migrations.AddField(
             model_name='song',

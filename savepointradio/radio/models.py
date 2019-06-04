@@ -167,11 +167,11 @@ class Song(Disableable, Publishable, Timestampable, models.Model):
                                      blank=True,
                                      editable=False)
     stores = models.ManyToManyField(Store, blank=True, related_name='song')
-    current_store = models.ForeignKey(Store,
-                                      on_delete=models.SET_NULL,
-                                      null=True,
-                                      blank=True,
-                                      related_name='current_of')
+    active_store = models.ForeignKey(Store,
+                                     on_delete=models.SET_NULL,
+                                     null=True,
+                                     blank=True,
+                                     related_name='active_for')
     sorted_title = models.CharField(_('naturalized title'),
                                     db_index=True,
                                     editable=False,

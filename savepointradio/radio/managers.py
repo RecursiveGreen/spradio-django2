@@ -88,7 +88,7 @@ class SongManager(RadioManager):
         '''
         a_songs = self.available_songs()
         length = a_songs.aggregate(
-            total_time=models.Sum('current_store__length')
+            total_time=models.Sum('active_store__length')
         )
         return length['total_time']
 

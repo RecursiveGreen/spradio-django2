@@ -166,7 +166,7 @@ class SongAdmin(admin.ModelAdmin):
             'fields': ('song_type',
                        'title',
                        'published_date',
-                       'current_store')
+                       'active_store')
         }),
         ('Stats', {
             'classes': ('collapse',),
@@ -186,7 +186,7 @@ class SongAdmin(admin.ModelAdmin):
     inlines = [ArtistInline, StoreInline]
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'current_store':
+        if db_field.name == 'active_store':
             kwargs['queryset'] = Store.objects.filter(
                 song__pk=request.resolver_match.kwargs['object_id']
             )

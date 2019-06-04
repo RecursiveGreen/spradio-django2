@@ -97,7 +97,7 @@ class Command(BaseCommand):
                 length=song['store']['length']
             )
             new_song.stores.add(new_store)
-            new_song.current_store = new_store
+            new_song.active_store = new_store
             new_song.save()
             if song['type'] == 'S':
                 totals['songs'] += 1

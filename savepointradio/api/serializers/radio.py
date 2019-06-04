@@ -4,7 +4,7 @@ from rest_framework.serializers import (DecimalField, IntegerField, ListField,
                                         StringRelatedField)
 
 from core.utils import iri_to_path
-from radio.models import Album, Artist, Game, Song
+from radio.models import Album, Artist, Game, Song, Store
 
 
 class AlbumSerializer(ModelSerializer):
@@ -38,12 +38,27 @@ class GameSerializer(ModelSerializer):
         fields = ('id', 'title')
 
 
+class StoreSerializer(ModelSerializer):
+    '''A base serializer for a data store model.'''
+    active = SerializerMethodField()
+
+    class Meta:
+        model = Store
+        fields = ('id', 'iri', 'file_size', 'length', 'mime_type')
+
+    def get_active(self, obj):
+        '''Checks to see if this store is active for a song.'''
+        if obj.active_for:
+            return True
+        return False
+
+
 class SongSerializer(ModelSerializer):
     '''A base serializer for a song model.'''
     length = DecimalField(
         max_digits=10,
         decimal_places=2,
-        source='current_store.length'
+        source='active_store.length'
     )
 
     class Meta:
@@ -72,7 +87,7 @@ class SongListSerializer(ModelSerializer):
     length = DecimalField(
         max_digits=10,
         decimal_places=2,
-        source='current_store.length'
+        source='active_store.length'
     )
 
     class Meta:
@@ -102,7 +117,7 @@ class RadioSongSerializer(ModelSerializer):
     length = DecimalField(
         max_digits=10,
         decimal_places=2,
-        source='current_store.length'
+        source='active_store.length'
     )
     path = SerializerMethodField()
 
@@ -113,7 +128,7 @@ class RadioSongSerializer(ModelSerializer):
 
     def get_path(self, obj):
         '''Converts the IRI into a filesystem path.'''
-        iri = str(obj.current_store.iri)
+        iri = str(obj.active_store.iri)
         if iri.startswith('file://'):
             return iri_to_path(iri)
         return iri
