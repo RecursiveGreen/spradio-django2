@@ -1,4 +1,5 @@
-from rest_framework.serializers import (DecimalField, IntegerField, ListField,
+from rest_framework.serializers import (BooleanField, DecimalField,
+                                        IntegerField, ListField,
                                         ModelSerializer, Serializer,
                                         SerializerMethodField,
                                         StringRelatedField)
@@ -48,7 +49,7 @@ class StoreSerializer(ModelSerializer):
 
     def get_active(self, obj):
         '''Checks to see if this store is active for a song.'''
-        if obj.active_for:
+        if obj.active_for.all():
             return True
         return False
 
@@ -139,4 +140,15 @@ class SongArtistsListSerializer(Serializer):
     A serializer for adding or removing artists from a song based on
     the song's id number.
     '''
+    # TODO: Probably should move to PrimaryKeyRelatedField.
     artists = ListField(child=IntegerField(), min_length=1, max_length=10)
+
+
+class SongStoresSerializer(Serializer):
+    '''
+    A serializer for adding or removing a data store from a song based on
+    the song's id number.
+    '''
+    # TODO: Probably should move to PrimaryKeyRelatedField.
+    store = IntegerField()
+    set_active = BooleanField(default=False)

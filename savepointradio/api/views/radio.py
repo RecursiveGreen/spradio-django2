@@ -4,15 +4,17 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 
 from profiles.models import RadioProfile, Rating
-from radio.models import Album, Artist, Game, Song
+from radio.models import Album, Artist, Game, Song, Store
 from ..permissions import IsAdminOrReadOnly, IsAuthenticatedAndNotDJ
 from ..serializers.profiles import (BasicProfileSerializer,
                                     BasicSongRatingsSerializer,
                                     RateSongSerializer)
 from ..serializers.radio import (AlbumSerializer, ArtistSerializer,
-                                 GameSerializer, SongSerializer,
-                                 SongListSerializer, SongRetrieveSerializer,
-                                 SongArtistsListSerializer)
+                                 GameSerializer, StoreSerializer,
+                                 SongSerializer, SongListSerializer,
+                                 SongRetrieveSerializer,
+                                 SongArtistsListSerializer,
+                                 SongStoresSerializer)
 
 
 class AlbumViewSet(viewsets.ModelViewSet):
@@ -63,6 +65,12 @@ class GameViewSet(viewsets.ModelViewSet):
         return Game.music.available()
 
 
+class StoreViewSet(viewsets.ModelViewSet):
+    queryset = Store.objects.all()
+    permission_classes = [IsAdminUser]
+    serializer_class = StoreSerializer
+
+
 class SongViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
@@ -94,12 +102,18 @@ class SongViewSet(viewsets.ModelViewSet):
         serializer = SongArtistsListSerializer(data=request.data)
         if serializer.is_valid():
             artists = Artist.objects.filter(pk__in=serializer.data['artists'])
+
             for artist in artists:
                 if remove:
                     song.artists.remove(artist)
                 else:
                     song.artists.add(artist)
+
             song.save()
+
+            if song.artists.count() == 0:
+                song.disable('No artists specified for song.')
+
             message = 'Artists {} song.'.format(('added to',
                                                  'removed from')[remove])
             return Response({'detail': message})
@@ -114,6 +128,58 @@ class SongViewSet(viewsets.ModelViewSet):
     def artists_remove(self, request, pk=None):
         '''Removes an artist from a song.'''
         return self._artists_change(request, remove=True)
+
+    def _store_change(self, request, remove=False):
+        song = self.get_object()
+        serializer = SongStoresSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                store = Store.objects.get(pk=serializer.data['store'])
+            except Store.DoesNotExist:
+                return Response({'detail': 'Store does not exist.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            if remove:
+                song.stores.remove(store)
+            else:
+                song.stores.add(store)
+
+            if serializer.data['set_active'] and not remove:
+                song.active_store = store
+
+            song.save()
+
+            if song.stores.count() == 0:
+                song.disable('No stores specified for song.')
+
+            message = 'Store {} song.'.format(('added to',
+                                               'removed from')[remove])
+            return Response({'detail': message})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=['post'], detail=True, permission_classes=[IsAdminUser])
+    def store_add(self, request, pk=None):
+        '''Adds a data store to a song.'''
+        return self._store_change(request)
+
+    @action(methods=['post'], detail=True, permission_classes=[IsAdminUser])
+    def store_remove(self, request, pk=None):
+        '''Removes a data store from a song.'''
+        return self._store_change(request, remove=True)
+
+    @action(detail=True, permission_classes=[IsAdminUser])
+    def stores(self, request, pk=None):
+        '''Get a list of data stores associate with this song.'''
+        song = self.get_object()
+        stores = song.stores.all().order_by('-created_date')
+
+        page = self.paginate_queryset(stores)
+        if page is not None:
+            serializer = StoreSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = StoreSerializer(stores, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, permission_classes=[AllowAny])
     def favorites(self, request, pk=None):
