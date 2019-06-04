@@ -4,7 +4,7 @@ from rest_framework.serializers import (IntegerField, ModelSerializer,
                                         Serializer)
 
 from profiles.models import RadioProfile, SongRequest, Rating
-from .radio import BasicSongRetrieveSerializer
+from .radio import SongMinimalSerializer
 
 
 User = get_user_model()
@@ -44,7 +44,7 @@ class RateSongSerializer(Serializer):
 
 class HistorySerializer(ModelSerializer):
     profile = BasicProfileSerializer()
-    song = BasicSongRetrieveSerializer()
+    song = SongMinimalSerializer()
 
     class Meta:
         model = SongRequest
@@ -52,7 +52,7 @@ class HistorySerializer(ModelSerializer):
 
 
 class BasicProfileRatingsSerializer(ModelSerializer):
-    song = BasicSongRetrieveSerializer()
+    song = SongMinimalSerializer()
 
     class Meta:
         model = Rating
