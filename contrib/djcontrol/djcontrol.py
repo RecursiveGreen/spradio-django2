@@ -8,6 +8,8 @@ when a song has been played.
 
 import argparse
 import json
+import logging
+from logging.handlers import RotatingFileHandler
 
 import requests
 
@@ -24,6 +26,22 @@ HEADERS = {
 }
 
 ANNOTATE = 'annotate:req_id="{}",type="{}",artist="{}",title="{}",game="{}":{}'
+
+logging.basicConfig(
+        handlers=[
+            RotatingFileHandler(
+                './song_requests.log',
+                maxBytes=1000000,
+                backupCount=5,
+                encoding='utf8'
+            )
+        ],
+        level=logging.INFO,
+        format=('[%(asctime)s] [%(levelname)s]'
+                ' [%(name)s.%(funcName)s] === %(message)s'),
+        datefmt='%Y-%m-%dT%H:%M:%S'
+    )
+LOGGER = logging.getLogger('djcontrol')
 
 
 def clean_quotes(unclean_string):
@@ -43,23 +61,12 @@ def beautify_artists(artists):
     return clean_quotes(output.join(artists))
 
 
-description = 'Lets the DJ control the radio.'
-
-parser = argparse.ArgumentParser(description=description)
-subparsers = parser.add_subparsers(dest='command')
-
-parser_next = subparsers.add_parser('next',
-                                    help='Gets the next song from the radio.')
-parser_played = subparsers.add_parser('played',
-                                      help='Tells the radio which song just played.')
-parser_played.add_argument('request',
-                           help='Song request ID number.',
-                           nargs=1,
-                           type=int)
-
-args = parser.parse_args()
-
-if args.command == 'next':
+def next_request():
+    '''
+    Sends an HTTP[S] request to the radio web service to retrieve the next
+    requested song.
+    '''
+    LOGGER.debug('Received command to get next song request.')
     try:
         r = requests.get(API_URL + 'next/',
                          headers=HEADERS,
@@ -67,14 +74,15 @@ if args.command == 'next':
         r.encoding = 'utf-8'
         r.raise_for_status()
     except requests.exceptions.HTTPError as errh:
-        print('Http Error: {}'.format(errh))
+        LOGGER.error('Http Error: %s', errh)
     except requests.exceptions.ConnectionError as errc:
-        print('Error Connecting: {}'.format(errc))
+        LOGGER.error('Error Connecting: %s', errc)
     except requests.exceptions.Timeout as errt:
-        print('Timeout Error: {}'.format(errt))
+        LOGGER.error('Timeout Error: %s', errt)
     except requests.exceptions.RequestException as err:
-        print('Error: {}'.format(err))
+        LOGGER.error('Error: %s', err)
     else:
+        LOGGER.debug('Received JSON response: %s', r.text)
         req = json.loads(r.text)
         song = req['song']
         if song['song_type'] == 'J':
@@ -85,15 +93,34 @@ if args.command == 'next':
             artist = beautify_artists(song['artists'])
             title = clean_quotes(song['title'])
             game = clean_quotes(song['game'])
-        print(ANNOTATE.format(req['id'],
-                              song['song_type'],
-                              artist,
-                              title,
-                              game,
-                              song['path']))
-elif args.command == 'played':
+        LOGGER.info(
+            'Req_ID: %s, Artist[s]: %s, Title: %s, Game: %s, Path: %s',
+            req['id'],
+            artist,
+            title,
+            game,
+            song['path']
+        )
+        annotate_string = ANNOTATE.format(
+            req['id'],
+            song['song_type'],
+            artist,
+            title,
+            game,
+            song['path']
+        )
+        LOGGER.debug(annotate_string)
+        print(annotate_string)
+
+
+def just_played(request_id):
+    '''
+    Sends an HTTP[S] request to the radio web service to let it know that a
+    song has been played.
+    '''
+    LOGGER.debug('Received command to report a song was just played.')
     try:
-        req_played = json.dumps({'song_request': args.request[0]})
+        req_played = json.dumps({'song_request': request_id})
         r = requests.post(API_URL + 'played/',
                           headers=HEADERS,
                           data=req_played,
@@ -101,11 +128,47 @@ elif args.command == 'played':
         r.encoding = 'utf-8'
         r.raise_for_status()
     except requests.exceptions.HTTPError as errh:
-        print('Http Error: {}'.format(errh))
-        print(r.text)
+        LOGGER.error('Http Error: %s', errh)
     except requests.exceptions.ConnectionError as errc:
-        print('Error Connecting: {}'.format(errc))
+        LOGGER.error('Error Connecting: %s', errc)
     except requests.exceptions.Timeout as errt:
-        print('Timeout Error: {}'.format(errt))
+        LOGGER.error('Timeout Error: %s', errt)
     except requests.exceptions.RequestException as err:
-        print('Error: {}'.format(err))
+        LOGGER.error('Error: %s', err)
+    else:
+        LOGGER.info('Req_ID: %s', request_id)
+
+
+def main():
+    '''Main loop of the program'''
+    description = 'Lets the DJ control the radio.'
+
+    parser = argparse.ArgumentParser(description=description)
+    subparsers = parser.add_subparsers(dest='command')
+
+    parser_next = subparsers.add_parser(
+        'next',
+        help='Gets the next song from the radio.'
+    )
+
+    parser_played = subparsers.add_parser(
+        'played',
+        help='Tells the radio which song just played.'
+    )
+    parser_played.add_argument(
+        'request',
+        help='Song request ID number.',
+        nargs=1,
+        type=int
+    )
+
+    args = parser.parse_args()
+
+    if args.command == 'next':
+        next_request()
+    elif args.command == 'played':
+        just_played(args.request[0])
+
+
+if __name__ == '__main__':
+    main()
