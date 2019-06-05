@@ -68,11 +68,9 @@ def next_request():
     '''
     LOGGER.debug('Received command to get next song request.')
     try:
-        r = requests.get(API_URL + 'next/',
-                         headers=HEADERS,
-                         timeout=5)
-        r.encoding = 'utf-8'
-        r.raise_for_status()
+        resp = requests.get(API_URL + 'next/', headers=HEADERS, timeout=5)
+        resp.encoding = 'utf-8'
+        resp.raise_for_status()
     except requests.exceptions.HTTPError as errh:
         LOGGER.error('Http Error: %s', errh)
     except requests.exceptions.ConnectionError as errc:
@@ -82,9 +80,9 @@ def next_request():
     except requests.exceptions.RequestException as err:
         LOGGER.error('Error: %s', err)
     else:
-        LOGGER.debug('Received JSON response: %s', r.text)
-        req = json.loads(r.text)
-        song = req['song']
+        LOGGER.debug('Received JSON response: %s', resp.text)
+        song_request = json.loads(resp.text)
+        song = song_request['song']
         if song['song_type'] == 'J':
             artist = RADIO_NAME
             title = 'Jingle'
@@ -95,14 +93,14 @@ def next_request():
             game = clean_quotes(song['game'])
         LOGGER.info(
             'Req_ID: %s, Artist[s]: %s, Title: %s, Game: %s, Path: %s',
-            req['id'],
+            song_request['id'],
             artist,
             title,
             game,
             song['path']
         )
         annotate_string = ANNOTATE.format(
-            req['id'],
+            song_request['id'],
             song['song_type'],
             artist,
             title,
@@ -120,13 +118,15 @@ def just_played(request_id):
     '''
     LOGGER.debug('Received command to report a song was just played.')
     try:
-        req_played = json.dumps({'song_request': request_id})
-        r = requests.post(API_URL + 'played/',
-                          headers=HEADERS,
-                          data=req_played,
-                          timeout=5)
-        r.encoding = 'utf-8'
-        r.raise_for_status()
+        request_played = json.dumps({'song_request': request_id})
+        resp = requests.post(
+            API_URL + 'played/',
+            headers=HEADERS,
+            data=request_played,
+            timeout=5
+        )
+        resp.encoding = 'utf-8'
+        resp.raise_for_status()
     except requests.exceptions.HTTPError as errh:
         LOGGER.error('Http Error: %s', errh)
     except requests.exceptions.ConnectionError as errc:
