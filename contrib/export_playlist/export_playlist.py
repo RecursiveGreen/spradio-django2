@@ -20,7 +20,7 @@ import magic
 def scrub(text):
     '''
     Forcing a Unicode NFC normalization to remove combining marks that mess
-    with certain Python fucntions.
+    with certain Python functions.
     '''
     if text:
         return unicodedata.normalize('NFC', text)
