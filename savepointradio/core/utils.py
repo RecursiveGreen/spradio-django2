@@ -17,6 +17,7 @@ from django.db import connection
 from django.utils.encoding import iri_to_uri, uri_to_iri
 
 from .models import Setting
+from .validators import GROUP_NT_DRIVE_LETTER, GROUP_NT_UNC
 
 
 def generate_password(length=32):
@@ -165,7 +166,7 @@ def iri_to_path(iri):
     # Drive letter IRI will have three slashes followed by the drive letter
     # UNC path IRI will have two slashes followed by the UNC path
     uri = iri_to_uri(iri)
-    patt = r'^(?:file:///[A-Za-z]:/|file://[A-Za-z0-9!@#$%^&\'\)\(\.\-_{}~]+/)'
+    patt = r'^(?:' + GROUP_NT_DRIVE_LETTER + r'|' + GROUP_NT_UNC + r')'
     windows = re.match(patt, uri)
     if windows:
         parse = urlparse(uri)
