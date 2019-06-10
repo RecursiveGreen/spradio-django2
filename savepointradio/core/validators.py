@@ -8,22 +8,7 @@ from django.core import validators
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-
-GROUP_NT_UNC = r'file://[A-Za-z0-9!@#$%^&\'\)\(\.\-_{}~]+/'
-
-GROUP_NT_DRIVE_LETTER = r'file:///[A-Za-z](?:\:|\|)/'
-
-GROUP_NON_AUTH = r'file:///[A-Za-z0-9!@#$%^&\'\)\(\.\-_{}~]+'
-
-FILE_IRI_PATTERN = (
-    r'^(?P<unc>' +
-    GROUP_NT_UNC +
-    r')|(?P<driveletter>' +
-    GROUP_NT_DRIVE_LETTER +
-    r')|(?P<nonauth>' +
-    GROUP_NON_AUTH +
-    r')'
-)
+from .utils import FILE_IRI_PATTERN
 
 
 class RadioIRIValidator(validators.URLValidator):

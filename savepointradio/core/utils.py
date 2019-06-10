@@ -17,7 +17,23 @@ from django.db import connection
 from django.utils.encoding import iri_to_uri, uri_to_iri
 
 from .models import Setting
-from .validators import GROUP_NT_DRIVE_LETTER, GROUP_NT_UNC
+
+
+GROUP_NT_UNC = r'file://[A-Za-z0-9!@#$%^&\'\)\(\.\-_{}~]+/'
+
+GROUP_NT_DRIVE_LETTER = r'file:///[A-Za-z](?:\:|\|)/'
+
+GROUP_NON_AUTH = r'file:///[A-Za-z0-9!@#$%^&\'\)\(\.\-_{}~]+'
+
+FILE_IRI_PATTERN = (
+    r'^(?P<unc>' +
+    GROUP_NT_UNC +
+    r')|(?P<driveletter>' +
+    GROUP_NT_DRIVE_LETTER +
+    r')|(?P<nonauth>' +
+    GROUP_NON_AUTH +
+    r')'
+)
 
 
 def generate_password(length=32):
