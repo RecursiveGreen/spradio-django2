@@ -7,6 +7,7 @@ by the new database later.
 
 import argparse
 from decimal import Decimal, getcontext
+import hashlib
 import json
 import mimetypes
 import os
@@ -36,6 +37,19 @@ def detect_mime(path):
     if mimetype == 'application/octet-stream':
         return mimetypes.guess_type(path, strict=True)[0]
     return mimetype
+
+
+def hash_file(path):
+    '''
+    Run a music file through a hashing algorithm (SHA3_256) and return the
+    hexidecimal digest.
+    '''
+    try:
+        with open(path, 'rb') as file:
+            filehash = hashlib.sha3_256(file.read()).hexdigest()
+    except OSError:
+        filehash = None
+    return filehash
 
 
 def adapt_decimal(number):
@@ -142,6 +156,7 @@ def import_sqlite3(db_file):
         store = {'path': scrub(song[7]),
                  'mime': detect_mime(scrub(song[7])),
                  'filesize': os.stat(scrub(song[7])).st_size,
+                 'filehash': hash_file(scrub(song[7])),
                  'length': song[6]}
         songs.append({'album': scrub(song[2]),
                       'artists': song_artists,
