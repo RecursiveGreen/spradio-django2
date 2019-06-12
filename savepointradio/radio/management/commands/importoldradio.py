@@ -6,6 +6,7 @@ for seeding a newly created database.
 import decimal
 import json
 import os
+import re
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -90,8 +91,18 @@ class Command(BaseCommand):
                 )
                 new_song.artists.add(new_artist)
 
+            localfile = re.match(
+                r'^(?:(?:[A-Za-z]:|\\)\\|\/)',
+                song['store']['path']
+            )
+
+            if localfile:
+                iri = path_to_iri(song['store']['path'])
+            else:
+                iri = song['store']['path']
+
             new_store = Store.objects.create(
-                iri=path_to_iri(song['store']['path']),
+                iri=iri,
                 mime_type=song['store']['mime'],
                 file_size=song['store']['filesize'],
                 length=song['store']['length']
