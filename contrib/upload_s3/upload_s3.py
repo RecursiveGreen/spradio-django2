@@ -7,9 +7,11 @@ an Amazon S3 instance (or other implementations, like DigialOcean Spaces).
 
 import argparse
 import json
+import logging
 import os
 import sys
 import threading
+import traceback
 from unicodedata import normalize
 
 from decouple import config
@@ -27,6 +29,15 @@ S3_BUCKET = config('S3_BUCKET')
 
 # Radio name for metadata
 RADIO_NAME = config('RADIO_NAME', default='Save Point Radio')
+
+logging.basicConfig(
+        handlers=[logging.FileHandler('./s3_uploads.log', encoding='utf8')],
+        level=logging.INFO,
+        format=('[%(asctime)s] [%(levelname)s]'
+                ' [%(name)s.%(funcName)s] === %(message)s'),
+        datefmt='%Y-%m-%dT%H:%M:%S'
+    )
+LOGGER = logging.getLogger('upload_s3')
 
 
 class Progress(object):
@@ -107,6 +118,8 @@ def import_playlist(playlist_file):
         aws_secret_access_key=S3_SECRET_KEY
     )
 
+    totals = {'success': 0, 'fail': 0}
+
     for song in playlist['songs']:
         old_path = song['store']['path']
 
@@ -132,21 +145,44 @@ def import_playlist(playlist_file):
         ext = os.path.splitext(old_path)[1]
         new_path = '{}/{}{}'.format(prefix, file_hash, ext)
 
-        client.upload_file(
-            old_path,
-            S3_BUCKET,
-            new_path,
-            ExtraArgs={
-                'Metadata': metadata,
-                'ContentType': song['store']['mime']
-            },
-            Callback=Progress(old_path)
-        )
+        LOGGER.info('Begin upload of: %s', old_path)
 
-        song['store']['path'] = 's3://{}/{}'.format(S3_BUCKET, new_path)
+        try:
+            client.upload_file(
+                old_path,
+                S3_BUCKET,
+                new_path,
+                ExtraArgs={
+                    'Metadata': metadata,
+                    'ContentType': song['store']['mime']
+                },
+                Callback=Progress(old_path)
+            )
+        except Exception:
+            LOGGER.error(
+                'Upload failed for: %s -- %s',
+                old_path,
+                traceback.print_exc()
+            )
+            totals['fail'] += 1
+        else:
+            song['store']['path'] = 's3://{}/{}'.format(S3_BUCKET, new_path)
+            LOGGER.info(
+                'Successful upload of: %s to %s',
+                old_path,
+                song['store']['path']
+            )
+            totals['success'] += 1
 
         sys.stdout.write("\r\n")
         sys.stdout.flush()
+
+    result_message = 'Uploads complete -- {} successful, {} failures'.format(
+        totals['success'],
+        totals['fail']
+    )
+    print(result_message)
+    LOGGER.info(result_message)
 
     return playlist
 
@@ -182,6 +218,7 @@ def main():
         results = import_playlist(args.filepath[0])
 
     if results:
+        LOGGER.info('Exporting new playlist file to \'playlist_s3.json\'')
         with open('playlist_s3.json', 'w', encoding='utf8') as file:
             json.dump(
                 results,
@@ -190,6 +227,7 @@ def main():
                 sort_keys=True,
                 indent=4
             )
+    LOGGER.info('Program finished. Exiting.')
 
 
 if __name__ == '__main__':
