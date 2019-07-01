@@ -11,14 +11,15 @@ import json
 import logging
 from logging.handlers import RotatingFileHandler
 
+from decouple import config
 import requests
 
 
-DJ_TOKEN = 'place_generated_token_here'
+DJ_TOKEN = config('DJ_TOKEN')
 
-API_URL = 'https://savepointradio.net/api/'
+API_URL = config('API_URL')  # With trailing slash
 
-RADIO_NAME = 'Save Point Radio'
+RADIO_NAME = config('RADIO_NAME')
 
 HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
