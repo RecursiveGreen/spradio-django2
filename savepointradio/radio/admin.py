@@ -114,14 +114,20 @@ class StoreAdmin(admin.ModelAdmin):
     list_display = ('iri',
                     'mime_type',
                     'file_size',
-                    'length')
+                    'length',
+                    '_replaygain')
     search_fields = ['iri']
 
     # Edit Form display
     readonly_fields = ('created_date', 'modified_date')
     fieldsets = (
         ('Main', {
-            'fields': ('iri', 'mime_type', 'file_size', 'length')
+            'fields': ('iri',
+                       'mime_type',
+                       'file_size',
+                       'length',
+                       'track_gain',
+                       'track_peak')
         }),
         ('Stats', {
             'classes': ('collapse',),

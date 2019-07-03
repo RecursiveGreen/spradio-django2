@@ -101,11 +101,24 @@ class Command(BaseCommand):
             else:
                 iri = song['store']['path']
 
+            if song['store']['track_gain']:
+                gain_str = re.sub(r'[dB\+ ]', '', song['store']['track_gain'])
+                gain = decimal.Decimal(gain_str)
+            else:
+                gain = None
+
+            if song['store']['track_peak']:
+                peak = decimal.Decimal(song['store']['track_peak'])
+            else:
+                peak = None
+
             new_store = Store.objects.create(
                 iri=iri,
                 mime_type=song['store']['mime'],
                 file_size=song['store']['filesize'],
-                length=song['store']['length']
+                length=song['store']['length'],
+                track_gain=gain,
+                track_peak=peak
             )
             new_song.stores.add(new_store)
             new_song.active_store = new_store

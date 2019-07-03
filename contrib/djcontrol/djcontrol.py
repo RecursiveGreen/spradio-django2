@@ -26,7 +26,14 @@ HEADERS = {
     'Authorization': 'Token {}'.format(DJ_TOKEN)
 }
 
-ANNOTATE = 'annotate:req_id="{}",type="{}",artist="{}",title="{}",game="{}":{}'
+ANNOTATE = (
+    'annotate:req_id="{}",'
+    'type="{}",'
+    'artist="{}",'
+    'title="{}",'
+    'game="{}",'
+    'replay_gain="{}":{}'
+)
 
 logging.basicConfig(
         handlers=[
@@ -93,11 +100,12 @@ def next_request():
             title = clean_quotes(song['title'])
             game = clean_quotes(song['game'])
         LOGGER.info(
-            'Req_ID: %s, Artist[s]: %s, Title: %s, Game: %s, Path: %s',
+            'ID: %s, Artist[s]: %s, Title: %s, Game: %s, Gain: %s, Path: %s',
             song_request['id'],
             artist,
             title,
             game,
+            song['replaygain'],
             song['path']
         )
         annotate_string = ANNOTATE.format(
@@ -106,6 +114,7 @@ def next_request():
             artist,
             title,
             game,
+            song['replaygain'],
             song['path']
         )
         LOGGER.debug(annotate_string)

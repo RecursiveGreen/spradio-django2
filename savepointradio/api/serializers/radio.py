@@ -1,4 +1,4 @@
-from rest_framework.serializers import (BooleanField, DecimalField,
+from rest_framework.serializers import (BooleanField, CharField, DecimalField,
                                         IntegerField, ListField,
                                         ModelSerializer, Serializer,
                                         SerializerMethodField,
@@ -120,12 +120,13 @@ class RadioSongSerializer(ModelSerializer):
         decimal_places=2,
         source='active_store.length'
     )
+    replaygain = CharField(source='active_store.replaygain')
     path = SerializerMethodField()
 
     class Meta:
         model = Song
         fields = ('album', 'artists', 'game', 'song_type', 'title', 'length',
-                  'path')
+                  'replaygain', 'path')
 
     def get_path(self, obj):
         '''Converts the IRI into a filesystem path.'''

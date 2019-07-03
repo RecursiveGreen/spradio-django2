@@ -117,6 +117,27 @@ class Store(Timestampable, models.Model):
                                  decimal_places=2,
                                  null=True,
                                  blank=True)
+    track_gain = models.DecimalField(_('recommended replaygain adjustment'),
+                                     max_digits=6,
+                                     decimal_places=2,
+                                     null=True,
+                                     blank=True)
+    track_peak = models.DecimalField(_('highest volume level in the track'),
+                                     max_digits=10,
+                                     decimal_places=6,
+                                     null=True,
+                                     blank=True)
+
+    def _replaygain(self):
+        '''
+        String representation of the recommended amplitude adjustment.
+        '''
+        if self.track_gain is None:
+            return '+0.00 dB'
+        if self.track_gain > 0:
+            return '+{} dB'.format(str(self.track_gain))
+        return '{} dB'.format(str(self.track_gain))
+    replaygain = property(_replaygain)
 
     def __str__(self):
         return self.iri
