@@ -1,7 +1,6 @@
 from rest_framework.serializers import (IntegerField,
                                         ModelSerializer,
-                                        Serializer,
-                                        StringRelatedField)
+                                        Serializer)
 
 from profiles.models import SongRequest
 from .radio import RadioSongSerializer

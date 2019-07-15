@@ -3,13 +3,20 @@ from django.db import models
 from django.forms import TextInput
 
 from .actions import change_items, publish_items, remove_items
-from .models import Album, Artist, Game, Song
+from .models import Album, Artist, Game, Song, Store
 
 
 class ArtistInline(admin.TabularInline):
     model = Song.artists.through
     verbose_name = 'artist'
     verbose_name_plural = 'artists'
+    extra = 0
+
+
+class StoreInline(admin.TabularInline):
+    model = Song.stores.through
+    verbose_name = 'data store'
+    verbose_name_plural = 'data stores'
     extra = 0
 
 
@@ -101,6 +108,34 @@ class GameAdmin(admin.ModelAdmin):
     publish_games.short_description = "Publish selected games"
 
 
+@admin.register(Store)
+class StoreAdmin(admin.ModelAdmin):
+    # Detail List display
+    list_display = ('iri',
+                    'mime_type',
+                    'file_size',
+                    'length',
+                    '_replaygain')
+    search_fields = ['iri']
+
+    # Edit Form display
+    readonly_fields = ('created_date', 'modified_date')
+    fieldsets = (
+        ('Main', {
+            'fields': ('iri',
+                       'mime_type',
+                       'file_size',
+                       'length',
+                       'track_gain',
+                       'track_peak')
+        }),
+        ('Stats', {
+            'classes': ('collapse',),
+            'fields': ('created_date', 'modified_date')
+        })
+    )
+
+
 @admin.register(Song)
 class SongAdmin(admin.ModelAdmin):
     formfield_overrides = {
@@ -123,8 +158,7 @@ class SongAdmin(admin.ModelAdmin):
 
     # Edit Form display
     exclude = ('artists',)
-    readonly_fields = ('length',
-                       'last_played',
+    readonly_fields = ('last_played',
                        'num_played',
                        'created_date',
                        'modified_date',
@@ -137,8 +171,8 @@ class SongAdmin(admin.ModelAdmin):
         ('Main', {
             'fields': ('song_type',
                        'title',
-                       'path',
-                       'published_date')
+                       'published_date',
+                       'active_store')
         }),
         ('Stats', {
             'classes': ('collapse',),
@@ -146,8 +180,7 @@ class SongAdmin(admin.ModelAdmin):
                        'modified_date',
                        'last_played',
                        'num_played',
-                       'next_play',
-                       'length')
+                       'next_play')
         }),
         ('Album', {
             'fields': ('album',)
@@ -156,7 +189,14 @@ class SongAdmin(admin.ModelAdmin):
             'fields': ('game',)
         })
     )
-    inlines = [ArtistInline]
+    inlines = [ArtistInline, StoreInline]
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'active_store':
+            kwargs['queryset'] = Store.objects.filter(
+                song__pk=request.resolver_match.kwargs['object_id']
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def artist_list(self, obj):
         return ', '.join([a.full_name for a in obj.artists.all()])

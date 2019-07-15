@@ -1,25 +1,59 @@
+'''
+Various utlity functions that are independant of any Django app or
+model.
+'''
+
+from nturl2path import pathname2url as ntpathname2url
+from nturl2path import url2pathname as url2ntpathname
 import random
 import re
 import string
 from unicodedata import normalize
+from urllib.parse import urljoin, urlparse
+from urllib.request import pathname2url, url2pathname
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
+from django.utils.encoding import iri_to_uri, uri_to_iri
 
 from .models import Setting
 
 
+GROUP_NT_UNC = r'file://[A-Za-z0-9!@#$%^&\'\)\(\.\-_{}~]+/'
+
+GROUP_NT_DRIVE_LETTER = r'file:///[A-Za-z](?:\:|\|)/'
+
+GROUP_NON_AUTH = r'file:///[A-Za-z0-9!@#$%^&\'\)\(\.\-_{}~]+'
+
+FILE_IRI_PATTERN = (
+    r'^(?P<unc>' +
+    GROUP_NT_UNC +
+    r')|(?P<driveletter>' +
+    GROUP_NT_DRIVE_LETTER +
+    r')|(?P<nonauth>' +
+    GROUP_NON_AUTH +
+    r')'
+)
+
+
 def generate_password(length=32):
+    '''
+    Quick and dirty random password generator.
+
+    ***WARNING*** - Although this is likely "good enough" to create a secure
+    password, there are no validations (suitible entropy, dictionary words,
+    etc.) and should not be completely trusted. YOU HAVE BEEN WARNED.
+    '''
     chars = string.ascii_letters + string.digits + string.punctuation
     rng = random.SystemRandom()
     return ''.join([rng.choice(chars) for i in range(length)])
 
 
 def get_len(rawqueryset):
-    """
+    '''
     Adds/Overrides a dynamic implementation of the length protocol to the
     definition of RawQuerySet.
-    """
+    '''
     def __len__(self):
         params = ['{}'.format(p) for p in self.params]
         sql = ''.join(('SELECT COUNT(*) FROM (',
@@ -33,11 +67,13 @@ def get_len(rawqueryset):
 
 
 def get_setting(name):
+    '''Helper function to get dynamic settings from the database.'''
     setting = Setting.objects.get(name=name)
     return setting.get()
 
 
 def set_setting(name, value, setting_type=None):
+    '''Helper function to set dynamic settings from the database.'''
     setting_types = {'Integer': 0, 'Float': 1, 'String': 2, 'Bool': 3}
     try:
         setting = Setting.objects.get(name=name)
@@ -57,13 +93,13 @@ def set_setting(name, value, setting_type=None):
 
 
 def naturalize(text):
-    """
+    '''
     Return a normalized unicode string, with removed starting articles, for use
     in natural sorting.
 
     Code was inspired by 'django-naturalsortfield' from Nathan Reynolds:
     https://github.com/nathforge/django-naturalsortfield
-    """
+    '''
     def naturalize_int_match(match):
         return '{:08d}'.format(int(match.group(0)))
 
@@ -79,9 +115,9 @@ def naturalize(text):
 
 
 def quantify(quantity, model):
-    """
+    '''
     A message based on the quantity and singular/plural name of the model.
-    """
+    '''
     if quantity == 1:
         message = '1 {}'.format(model._meta.verbose_name)
     else:
@@ -92,21 +128,20 @@ def quantify(quantity, model):
 
 def create_success_message(parent_model, parent_quantity, child_model,
                            child_quantity, remove=False):
-    """
+    '''
     Creates a message for displaying the success of model modification.
-    """
+    '''
     p_message = quantify(parent_quantity, parent_model)
     c_message = quantify(child_quantity, child_model)
     if remove:
         return '{} successfully removed from {}'.format(c_message, p_message)
-    else:
-        return '{} successfully added to {}.'.format(c_message, p_message)
+    return '{} successfully added to {}.'.format(c_message, p_message)
 
 
 def get_pretty_time(seconds):
-    """
+    '''
     Displays a human-readable representation of time.
-    """
+    '''
     if seconds > 0:
         periods = [
             ('year', 60*60*24*365.25),
@@ -123,5 +158,36 @@ def get_pretty_time(seconds):
                                                 period_name,
                                                 ('s', '')[period_value == 1]))
         return ', '.join(strings)
-    else:
-        return 'Now'
+    return 'Now'
+
+
+def path_to_iri(path):
+    '''
+    OS-independant attempt at converting any OS absolute path to an
+    RFC3987-defined IRI along with the file scheme from RFC8089.
+    '''
+    # Looking to see if the path starts with a drive letter or UNC path
+    # (eg. 'D:\' or '\\')
+    windows = re.match(r'^(?:[A-Za-z]:|\\)\\', path)
+    if windows:
+        return uri_to_iri(urljoin('file:', ntpathname2url(path)))
+    return uri_to_iri(urljoin('file:', pathname2url(path)))
+
+
+def iri_to_path(iri):
+    '''
+    OS-independant attempt at converting an RFC3987-defined IRI with a file
+    scheme from RFC8089 to an OS-specific absolute path.
+    '''
+    # Drive letter IRI will have three slashes followed by the drive letter
+    # UNC path IRI will have two slashes followed by the UNC path
+    uri = iri_to_uri(iri)
+    patt = r'^(?:' + GROUP_NT_DRIVE_LETTER + r'|' + GROUP_NT_UNC + r')'
+    windows = re.match(patt, uri)
+    if windows:
+        parse = urlparse(uri)
+        # UNC path URIs put the server name in the 'netloc' parameter.
+        if parse.netloc:
+            return '\\' + url2ntpathname('/' + parse.netloc + parse.path)
+        return url2ntpathname(parse.path)
+    return url2pathname(urlparse(uri).path)

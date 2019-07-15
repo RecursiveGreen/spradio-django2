@@ -40,7 +40,30 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(SongRequest)
 class RequestAdmin(admin.ModelAdmin):
-    model = SongRequest
+    # Detail List display
+    list_display = ('get_user',
+                    'song',
+                    'created_date',
+                    'queued_at',
+                    'played_at')
+    search_fields = ['song', 'profile']
+
+    # Edit Form display
+    readonly_fields = (
+        'created_date',
+        'modified_date',
+        'profile',
+        'song',
+        'queued_at',
+        'played_at'
+    )
+
     verbose_name = 'request'
     verbose_name_plural = 'requests'
     extra = 0
+
+    def get_user(self, obj):
+        '''Returns the username from the profile.'''
+        return obj.profile.user
+    get_user.admin_order_field = 'profile'
+    get_user.short_description = 'User Name'

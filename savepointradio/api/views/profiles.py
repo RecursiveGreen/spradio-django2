@@ -11,7 +11,7 @@ from ..serializers.profiles import (BasicProfileSerializer,
                                     FullProfileSerializer,
                                     HistorySerializer,
                                     BasicProfileRatingsSerializer)
-from ..serializers.radio import BasicSongRetrieveSerializer
+from ..serializers.radio import SongListSerializer
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -52,10 +52,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
         page = self.paginate_queryset(favorites)
         if page is not None:
-            serializer = BasicSongRetrieveSerializer(page, many=True)
+            serializer = SongListSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = BasicSongRetrieveSerializer(favorites, many=True)
+        serializer = SongListSerializer(favorites, many=True)
         return Response(serializer.data)
 
     @action(detail=True, permission_classes=[AllowAny])
